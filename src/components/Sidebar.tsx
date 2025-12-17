@@ -9,7 +9,7 @@ interface NavItemProps {
   isActive: boolean;
 }
 
-const NavItem: React.FC<NavItemProps> = ({ href, icon, isActive }) => (
+const NavItem: React.FC<NavItemProps> = ({ href, icon, isActive, label }) => (
   <Link
     to={href}
     className={cn(
@@ -18,7 +18,7 @@ const NavItem: React.FC<NavItemProps> = ({ href, icon, isActive }) => (
         ? "bg-primary text-primary-foreground shadow-lg relative before:content-[''] before:absolute before:left-0 before:top-1/4 before:h-1/2 before:w-1 before:bg-primary before:rounded-r-full"
         : "text-muted-foreground hover:bg-accent hover:text-foreground",
     )}
-    title={name}
+    title={label}
   >
     {icon}
   </Link>
