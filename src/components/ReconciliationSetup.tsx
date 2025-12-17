@@ -51,14 +51,14 @@ const ReconciliationSetup: React.FC = () => {
   const isReadyToStart = config.file1 && config.file2;
 
   return (
-    <div className="space-y-8 p-4 md:p-8 max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold text-center mb-6 text-blue-600">Configuración de Reconciliación</h1>
+    <div className="space-y-6">
+      <h2 className="text-2xl font-semibold text-foreground mb-4">Configuración de Reconciliación</h2>
 
       {/* Section 1: File Upload */}
-      <Card>
+      <Card className="shadow-md rounded-xl">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Upload className="w-5 h-5" /> 1. Carga de Archivos Excel
+          <CardTitle className="flex items-center gap-2 text-lg font-medium">
+            <Upload className="w-5 h-5 text-blue-600" /> 1. Carga de Archivos Excel
           </CardTitle>
           <CardDescription>
             Selecciona los dos archivos que deseas conciliar.
@@ -89,18 +89,18 @@ const ReconciliationSetup: React.FC = () => {
       </Card>
 
       {/* Section 2: Record Relationship */}
-      <Card>
+      <Card className="shadow-md rounded-xl">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Link className="w-5 h-5" /> 2. Relación de Registros
+          <CardTitle className="flex items-center gap-2 text-lg font-medium">
+            <Link className="w-5 h-5 text-blue-600" /> 2. Relación de Registros
           </CardTitle>
           <CardDescription>
             Define cómo se espera que se relacionen los registros entre el Archivo A y el Archivo B.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="relation-1-1">
+          <div className="flex items-center justify-between p-2 rounded-md hover:bg-accent/50 transition-colors">
+            <Label htmlFor="relation-1-1" className="flex flex-col space-y-1 cursor-pointer">
               <span className="font-medium">1:1 (Uno a Uno)</span>
               <p className="text-sm text-muted-foreground">Cada registro en A coincide con exactamente un registro en B.</p>
             </Label>
@@ -110,8 +110,8 @@ const ReconciliationSetup: React.FC = () => {
               onCheckedChange={(checked) => handleSwitchChange('relationOneToOne', checked)}
             />
           </div>
-          <div className="flex items-center justify-between">
-            <Label htmlFor="relation-1-n">
+          <div className="flex items-center justify-between p-2 rounded-md hover:bg-accent/50 transition-colors">
+            <Label htmlFor="relation-1-n" className="flex flex-col space-y-1 cursor-pointer">
               <span className="font-medium">1:Muchos / Muchos:1</span>
               <p className="text-sm text-muted-foreground">Permite que un registro en un archivo coincida con múltiples registros en el otro.</p>
             </Label>
@@ -125,18 +125,18 @@ const ReconciliationSetup: React.FC = () => {
       </Card>
 
       {/* Section 3: Comparison Tolerance */}
-      <Card>
+      <Card className="shadow-md rounded-xl">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Settings className="w-5 h-5" /> 3. Nivel de Tolerancia
+          <CardTitle className="flex items-center gap-2 text-lg font-medium">
+            <Settings className="w-5 h-5 text-blue-600" /> 3. Nivel de Tolerancia
           </CardTitle>
           <CardDescription>
             Selecciona la estrictez con la que se compararán los valores (e.g., montos).
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="tolerance-exact">
+          <div className="flex items-center justify-between p-2 rounded-md hover:bg-accent/50 transition-colors">
+            <Label htmlFor="tolerance-exact" className="flex flex-col space-y-1 cursor-pointer">
               <span className="font-medium">Exacto</span>
               <p className="text-sm text-muted-foreground">Solo se aceptan coincidencias perfectas (0% de variación).</p>
             </Label>
@@ -146,8 +146,8 @@ const ReconciliationSetup: React.FC = () => {
               onCheckedChange={(checked) => handleSwitchChange('toleranceExact', checked)}
             />
           </div>
-          <div className="flex items-center justify-between">
-            <Label htmlFor="tolerance-balanced">
+          <div className="flex items-center justify-between p-2 rounded-md hover:bg-accent/50 transition-colors">
+            <Label htmlFor="tolerance-balanced" className="flex flex-col space-y-1 cursor-pointer">
               <span className="font-medium">Balanceado</span>
               <p className="text-sm text-muted-foreground">Permite pequeñas variaciones (e.g., hasta 0.5% o un monto fijo menor).</p>
             </Label>
@@ -157,8 +157,8 @@ const ReconciliationSetup: React.FC = () => {
               onCheckedChange={(checked) => handleSwitchChange('toleranceBalanced', checked)}
             />
           </div>
-          <div className="flex items-center justify-between">
-            <Label htmlFor="tolerance-flexible">
+          <div className="flex items-center justify-between p-2 rounded-md hover:bg-accent/50 transition-colors">
+            <Label htmlFor="tolerance-flexible" className="flex flex-col space-y-1 cursor-pointer">
               <span className="font-medium">Flexible</span>
               <p className="text-sm text-muted-foreground">Permite variaciones significativas o utiliza lógica de coincidencia difusa.</p>
             </Label>
@@ -177,7 +177,7 @@ const ReconciliationSetup: React.FC = () => {
           size="lg" 
           onClick={handleStartReconciliation} 
           disabled={!isReadyToStart}
-          className="w-full md:w-auto"
+          className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white"
         >
           Iniciar Reconciliación
         </Button>

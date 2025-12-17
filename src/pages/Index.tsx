@@ -1,12 +1,13 @@
 import ReconciliationSetup from "@/components/ReconciliationSetup";
 import { MadeWithDyad } from "@/components/made-with-dyad";
+import AppLayout from "@/components/AppLayout";
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-background">
+    <AppLayout>
       <ReconciliationSetup />
       <MadeWithDyad />
-    </div>
+    </AppLayout>
   );
 };
 
