@@ -17,6 +17,8 @@ interface ToleranceSettings {
   dateToleranceDays: number;
   textFuzzyThreshold: number;
   weighting: Record<string, number>;
+  autoMatchThreshold: number; // New: Score required for automatic match
+  suggestedMatchThreshold: number; // New: Score required for suggested match
 }
 
 interface ReconciliationConfig {
@@ -63,7 +65,10 @@ const ReconciliationSetup: React.FC = () => {
       amountTolerancePercent: 0.5,
       dateToleranceDays: 7,
       textFuzzyThreshold: 80,
-      weighting: { Amount: 50, Date: 50, Text: 0 },
+      // Initial weighting set up for potential 3-way split (Amount, Date, Text)
+      weighting: { Amount: 33, Date: 33, Text: 34 }, 
+      autoMatchThreshold: 95,
+      suggestedMatchThreshold: 70,
     },
   });
 
@@ -93,7 +98,7 @@ const ReconciliationSetup: React.FC = () => {
     }
   };
 
-  // Handlers for NEW Key Selection sections
+  // Handlers for Key Selection sections
   const handleHardKeyChange = (key: string, isSelected: boolean) => {
     setConfig(prev => {
       const newKeys = isSelected
@@ -118,8 +123,9 @@ const ReconciliationSetup: React.FC = () => {
       if (prev.strictnessMode === 'Balanceado' && !hasAmountOrDate) {
           newStrictnessMode = 'Exacto';
       }
+      // If we lose text keys, Flexible mode is no longer possible. Revert to Balanceado if Amount/Date exists, otherwise Exacto.
       if (prev.strictnessMode === 'Flexible' && !hasText) {
-          newStrictnessMode = 'Exacto';
+          newStrictnessMode = hasAmountOrDate ? 'Balanceado' : 'Exacto';
       }
 
       return { ...prev, softKeys: newKeys, strictnessMode: newStrictnessMode };
@@ -145,7 +151,6 @@ const ReconciliationSetup: React.FC = () => {
 
   const handleStartReconciliation = () => {
     if (!config.file1 || !config.file2) {
-      // This check is redundant due to disabled={!isReadyToStart} but good practice
       return;
     }
     
