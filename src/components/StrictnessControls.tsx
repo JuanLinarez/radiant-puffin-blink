@@ -31,19 +31,21 @@ const WeightingSlider: React.FC<WeightingSliderProps> = ({ label, value, onChang
   </div>
 );
 
+interface ToleranceSettings {
+  amountTolerancePercent: number;
+  dateToleranceDays: number;
+  textFuzzyThreshold: number;
+  weighting: Record<string, number>;
+  autoMatchThreshold: number;
+  suggestedMatchThreshold: number;
+}
+
 interface StrictnessControlsProps {
   softKeys: string[];
   currentMode: StrictnessMode;
   onModeChange: (mode: StrictnessMode, checked: boolean) => void;
-  toleranceSettings: {
-    amountTolerancePercent: number;
-    dateToleranceDays: number;
-    textFuzzyThreshold: number;
-    weighting: Record<string, number>;
-    autoMatchThreshold: number;
-    suggestedMatchThreshold: number;
-  };
-  onToleranceChange: (key: keyof StrictnessControlsProps['toleranceSettings'], value: number | Record<string, number>) => void;
+  toleranceSettings: ToleranceSettings;
+  onToleranceChange: (key: keyof ToleranceSettings, value: number | Record<string, number>) => void;
 }
 
 const StrictnessControls: React.FC<StrictnessControlsProps> = ({
@@ -82,32 +84,48 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
   const remainingWeight = 100 - totalWeight;
 
   const handleWeightChange = (keyToChange: string, newValue: number) => {
-    // 1. Calculate the sum of all *other* active weights
-    const otherWeightsSum = availableWeights
-      .filter(key => key !== keyToChange)
-      .reduce((sum, key) => sum + (currentWeights[key] || 0), 0);
-    
-    let finalNewValue = newValue;
-    
-    // 2. Ensure the new value doesn't push the total over 100
-    if (newValue + otherWeightsSum > 100) {
-      finalNewValue = 100 - otherWeightsSum;
-    }
-    
-    // Ensure finalNewValue is not negative
-    finalNewValue = Math.max(0, finalNewValue);
+    // Ensure the new value is between 0 and 100
+    newValue = Math.max(0, Math.min(100, newValue));
 
     const newWeighting = { ...currentWeights };
-    newWeighting[keyToChange] = finalNewValue;
+    newWeighting[keyToChange] = newValue;
 
-    // 3. If only two weights are active, adjust the other one automatically to maintain 100%
-    if (availableWeights.length === 2) {
-      const otherKey = availableWeights.find(key => key !== keyToChange);
-      if (otherKey) {
-        newWeighting[otherKey] = 100 - finalNewValue;
+    const otherKeys = availableWeights.filter(key => key !== keyToChange);
+    const numOtherKeys = otherKeys.length;
+    
+    const remainingWeightForOthers = 100 - newValue;
+
+    if (numOtherKeys === 0) {
+      // Only one key active, it must be 100%
+      newWeighting[keyToChange] = 100;
+    } else if (numOtherKeys === 1) {
+      // Two keys active: adjust the other one automatically
+      const otherKey = otherKeys[0];
+      newWeighting[otherKey] = remainingWeightForOthers;
+    } else if (numOtherKeys === 2) {
+      // Three keys active: distribute the remaining weight proportionally between the other two
+      const [key1, key2] = otherKeys;
+      
+      const currentWeight1 = currentWeights[key1] || 0;
+      const currentWeight2 = currentWeights[key2] || 0;
+      const currentSumOfOthers = currentWeight1 + currentWeight2;
+
+      if (currentSumOfOthers === 0) {
+        // If the other two were zero, distribute equally
+        newWeighting[key1] = Math.floor(remainingWeightForOthers / 2);
+        newWeighting[key2] = remainingWeightForOthers - newWeighting[key1];
+      } else {
+        // Distribute proportionally
+        const ratio1 = currentWeight1 / currentSumOfOthers;
+        const ratio2 = currentWeight2 / currentSumOfOthers;
+        
+        // Calculate new weights, rounding to ensure total is 100
+        const newWeight1 = Math.round(remainingWeightForOthers * ratio1);
+        const newWeight2 = remainingWeightForOthers - newWeight1; // Ensure total is exactly remainingWeightForOthers
+        
+        newWeighting[key1] = newWeight1;
+        newWeighting[key2] = newWeight2;
       }
-    } else if (availableWeights.length === 1) {
-        newWeighting[keyToChange] = 100; // If only one key, it must be 100%
     }
 
     onToleranceChange('weighting', newWeighting);
