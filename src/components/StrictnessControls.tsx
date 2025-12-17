@@ -13,7 +13,6 @@ interface WeightingSliderProps {
   label: string;
   value: number;
   onChange: (value: number) => void;
-  // Removed 'max' prop from here, as we will hardcode it to 100 in the component usage
 }
 
 const WeightingSlider: React.FC<WeightingSliderProps> = ({ label, value, onChange }) => (
@@ -24,7 +23,7 @@ const WeightingSlider: React.FC<WeightingSliderProps> = ({ label, value, onChang
     </div>
     <Slider
       value={[value]}
-      max={100} // Set max to 100 to ensure the slider is always draggable
+      max={100} // Fixed max to 100 to ensure the slider is always draggable
       step={1}
       onValueChange={(v) => onChange(v[0])}
       className="w-full"
@@ -255,7 +254,6 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
                     label={key}
                     value={currentWeights[key] || 0}
                     onChange={(value) => handleWeightChange(key, value)}
-                    // Removed max prop here, as it is now hardcoded to 100 inside WeightingSlider
                   />
                 ))}
               </div>
