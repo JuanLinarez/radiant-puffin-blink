@@ -52,7 +52,7 @@ const ReconciliationSetup: React.FC = () => {
 
   return (
     <div className="space-y-8 p-4 md:p-8 max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold text-center mb-6">Configuración de Reconciliación</h1>
+      <h1 className="text-3xl font-bold text-center mb-6 text-blue-600">Configuración de Reconciliación</h1>
 
       {/* Section 1: File Upload */}
       <Card>
