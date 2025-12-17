@@ -13,10 +13,10 @@ interface WeightingSliderProps {
   label: string;
   value: number;
   onChange: (value: number) => void;
-  max: number; // Max value allowed for this slider
+  // Removed 'max' prop from here, as we will hardcode it to 100 in the component usage
 }
 
-const WeightingSlider: React.FC<WeightingSliderProps> = ({ label, value, onChange, max }) => (
+const WeightingSlider: React.FC<WeightingSliderProps> = ({ label, value, onChange }) => (
   <div className="space-y-2 p-2 border rounded-md bg-background/50">
     <div className="flex justify-between items-center">
       <Label className="font-medium text-sm">{label}</Label>
@@ -24,11 +24,10 @@ const WeightingSlider: React.FC<WeightingSliderProps> = ({ label, value, onChang
     </div>
     <Slider
       value={[value]}
-      max={max}
-      step={1} // Changed step to 1 for finer control
+      max={100} // Set max to 100 to ensure the slider is always draggable
+      step={1}
       onValueChange={(v) => onChange(v[0])}
       className="w-full"
-      disabled={max === 0}
     />
   </div>
 );
@@ -74,9 +73,6 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
     // Text is only included in Flexible mode if textual keys are selected
     if (currentMode === 'Flexible' && hasText) {
       weights.push('Text');
-    } else if (currentMode === 'Balanceado' && hasText) {
-      // Ensure Text weight is zeroed out if we switch from Flexible to Balanceado
-      // This is handled implicitly by only calculating totalWeight based on availableWeights
     }
     
     return weights;
@@ -98,6 +94,9 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
     if (newValue + otherWeightsSum > 100) {
       finalNewValue = 100 - otherWeightsSum;
     }
+    
+    // Ensure finalNewValue is not negative
+    finalNewValue = Math.max(0, finalNewValue);
 
     const newWeighting = { ...currentWeights };
     newWeighting[keyToChange] = finalNewValue;
@@ -113,12 +112,6 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
     }
 
     onToleranceChange('weighting', newWeighting);
-  };
-
-  const getMaxWeight = (key: string) => {
-    // Max weight is the current weight + remaining weight
-    const currentKeyWeight = currentWeights[key] || 0;
-    return Math.max(0, currentKeyWeight + remainingWeight);
   };
   
   // Helper to check if we should show scoring controls
@@ -262,7 +255,7 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
                     label={key}
                     value={currentWeights[key] || 0}
                     onChange={(value) => handleWeightChange(key, value)}
-                    max={getMaxWeight(key)}
+                    // Removed max prop here, as it is now hardcoded to 100 inside WeightingSlider
                   />
                 ))}
               </div>
