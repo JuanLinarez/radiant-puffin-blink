@@ -4,12 +4,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
-import { Upload, Settings, Link } from "lucide-react";
+import { Upload, Settings, Link, GitBranch } from "lucide-react";
 import { showSuccess } from "@/utils/toast";
 
 interface ReconciliationConfig {
   file1: File | null;
   file2: File | null;
+  connectionHubSpoke: boolean;
+  connectionChain: boolean;
   relationOneToOne: boolean;
   relationOneToMany: boolean;
   toleranceExact: boolean;
@@ -21,6 +23,8 @@ const ReconciliationSetup: React.FC = () => {
   const [config, setConfig] = useState<ReconciliationConfig>({
     file1: null,
     file2: null,
+    connectionHubSpoke: true, // Default to Hub-and-spoke
+    connectionChain: false,
     relationOneToOne: true,
     relationOneToMany: false,
     toleranceExact: true,
@@ -31,6 +35,16 @@ const ReconciliationSetup: React.FC = () => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, fileKey: keyof Pick<ReconciliationConfig, 'file1' | 'file2'>) => {
     const file = e.target.files ? e.target.files[0] : null;
     setConfig(prev => ({ ...prev, [fileKey]: file }));
+  };
+
+  const handleConnectionSwitchChange = (key: keyof Pick<ReconciliationConfig, 'connectionHubSpoke' | 'connectionChain'>, checked: boolean) => {
+    if (checked) {
+      setConfig(prev => ({
+        ...prev,
+        connectionHubSpoke: key === 'connectionHubSpoke',
+        connectionChain: key === 'connectionChain',
+      }));
+    }
   };
 
   const handleRelationSwitchChange = (key: keyof Pick<ReconciliationConfig, 'relationOneToOne' | 'relationOneToMany'>, checked: boolean) => {
@@ -105,11 +119,47 @@ const ReconciliationSetup: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Section 2: Record Relationship */}
+      {/* NEW Section 2: Connection Method */}
       <Card className="shadow-xl rounded-xl border-none">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg font-medium text-primary">
-            <Link className="w-5 h-5" /> 2. Relación de Registros
+            <GitBranch className="w-5 h-5" /> 2. Método de Conexión
+          </CardTitle>
+          <CardDescription>
+            Define cómo se conectan los archivos entre sí para la conciliación.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between p-2 rounded-md hover:bg-accent transition-colors">
+            <Label htmlFor="connection-hub" className="flex flex-col space-y-1 cursor-pointer">
+              <span className="font-medium">Hub-and-spoke (Maestro)</span>
+              <p className="text-sm text-muted-foreground">Elige un archivo maestro y concilia los demás contra él (recomendado).</p>
+            </Label>
+            <Switch
+              id="connection-hub"
+              checked={config.connectionHubSpoke}
+              onCheckedChange={(checked) => handleConnectionSwitchChange('connectionHubSpoke', checked)}
+            />
+          </div>
+          <div className="flex items-center justify-between p-2 rounded-md hover:bg-accent transition-colors">
+            <Label htmlFor="connection-chain" className="flex flex-col space-y-1 cursor-pointer">
+              <span className="font-medium">Chain / Pipeline</span>
+              <p className="text-sm text-muted-foreground">A ↔ B ↔ C ↔ D, útil cuando cada archivo representa una etapa del proceso.</p>
+            </Label>
+            <Switch
+              id="connection-chain"
+              checked={config.connectionChain}
+              onCheckedChange={(checked) => handleConnectionSwitchChange('connectionChain', checked)}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Section 3: Record Relationship (Updated Index) */}
+      <Card className="shadow-xl rounded-xl border-none">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg font-medium text-primary">
+            <Link className="w-5 h-5" /> 3. Relación de Registros
           </CardTitle>
           <CardDescription>
             Define cómo se espera que se relacionen los registros entre el Archivo A y el Archivo B.
@@ -141,11 +191,11 @@ const ReconciliationSetup: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Section 3: Comparison Tolerance */}
+      {/* Section 4: Comparison Tolerance (Updated Index) */}
       <Card className="shadow-xl rounded-xl border-none">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg font-medium text-primary">
-            <Settings className="w-5 h-5" /> 3. Nivel de Tolerancia
+            <Settings className="w-5 h-5" /> 4. Nivel de Tolerancia
           </CardTitle>
           <CardDescription>
             Selecciona la estrictez con la que se compararán los valores (e.g., montos).
