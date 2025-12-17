@@ -13,9 +13,10 @@ interface WeightingSliderProps {
   label: string;
   value: number;
   onChange: (value: number) => void;
+  max: number; // Max value allowed for this slider
 }
 
-const WeightingSlider: React.FC<WeightingSliderProps> = ({ label, value, onChange }) => (
+const WeightingSlider: React.FC<WeightingSliderProps> = ({ label, value, onChange, max }) => (
   <div className="space-y-2 p-2 border rounded-md bg-background/50">
     <div className="flex justify-between items-center">
       <Label className="font-medium text-sm">{label}</Label>
@@ -23,10 +24,11 @@ const WeightingSlider: React.FC<WeightingSliderProps> = ({ label, value, onChang
     </div>
     <Slider
       value={[value]}
-      max={100}
+      max={max}
       step={5}
       onValueChange={(v) => onChange(v[0])}
       className="w-full"
+      disabled={max === 0}
     />
   </div>
 );
@@ -63,11 +65,29 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
     return weights;
   }, [softKeys, hasText]);
 
-  const totalWeight = availableWeights.reduce((sum, key) => sum + (toleranceSettings.weighting[key] || 0), 0);
+  const currentWeights = toleranceSettings.weighting;
+  const totalWeight = availableWeights.reduce((sum, key) => sum + (currentWeights[key] || 0), 0);
+  const remainingWeight = 100 - totalWeight;
 
-  const handleWeightChange = (key: string, value: number) => {
-    const newWeighting = { ...toleranceSettings.weighting, [key]: value };
+  const handleWeightChange = (keyToChange: string, newValue: number) => {
+    const otherWeightsSum = availableWeights
+      .filter(key => key !== keyToChange)
+      .reduce((sum, key) => sum + (currentWeights[key] || 0), 0);
+    
+    let finalNewValue = newValue;
+    
+    // Ensure the new value doesn't push the total over 100
+    if (newValue + otherWeightsSum > 100) {
+      finalNewValue = 100 - otherWeightsSum;
+    }
+
+    const newWeighting = { ...currentWeights, [keyToChange]: finalNewValue };
     onToleranceChange('weighting', newWeighting);
+  };
+
+  const getMaxWeight = (key: string) => {
+    const currentKeyWeight = currentWeights[key] || 0;
+    return currentKeyWeight + remainingWeight;
   };
 
   return (
@@ -139,6 +159,7 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
           </p>
         )}
 
+        {/* Balanceado Mode Controls */}
         {currentMode === 'Balanceado' && hasAmountOrDate && (
           <div className="space-y-4">
             <h4 className="font-semibold text-md">Tolerancia Porcentual y Temporal</h4>
@@ -174,27 +195,65 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
             )}
 
             <h4 className="font-semibold text-md mt-6">Pesos de Scoring (Total: {totalWeight}%)</h4>
-            <p className="text-sm text-muted-foreground mb-2">Define la importancia relativa de cada Soft Key en el puntaje de coincidencia.</p>
+            <p className="text-sm text-muted-foreground mb-2">Define la importancia relativa de cada Soft Key en el puntaje de coincidencia. Peso restante: <span className={cn("font-semibold", remainingWeight < 0 ? "text-destructive" : "text-primary")}>{remainingWeight}%</span></p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {availableWeights.map(key => (
                 <WeightingSlider
                   key={key}
                   label={key}
-                  value={toleranceSettings.weighting[key] || 0}
+                  value={currentWeights[key] || 0}
                   onChange={(value) => handleWeightChange(key, value)}
+                  max={getMaxWeight(key)}
                 />
               ))}
             </div>
           </div>
         )}
 
+        {/* Flexible Mode Controls */}
         {currentMode === 'Flexible' && hasText && (
           <div className="space-y-4">
             <h4 className="font-semibold text-md">Umbral de Coincidencia Textual (Fuzzy)</h4>
             <p className="text-sm text-muted-foreground">Define qué tan similar debe ser el texto para considerarse un match.</p>
+            
+            {/* Amount Tolerance (Visible in Flexible mode too, if selected) */}
+            {softKeys.includes('Amount') && (
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <Label>Tolerancia de Monto (%)</Label>
+                  <span className="text-sm font-medium">{toleranceSettings.amountTolerancePercent}%</span>
+                </div>
+                <Slider
+                  value={[toleranceSettings.amountTolerancePercent]}
+                  max={5}
+                  step={0.1}
+                  onValueChange={(v) => onToleranceChange('amountTolerancePercent', v[0])}
+                  className="w-full"
+                />
+              </div>
+            )}
+            
+            {/* Date Tolerance (Visible in Flexible mode too, if selected) */}
+            {softKeys.includes('Date') && (
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <Label>Tolerancia de Fecha (Días)</Label>
+                  <span className="text-sm font-medium">{toleranceSettings.dateToleranceDays} días</span>
+                </div>
+                <Slider
+                  value={[toleranceSettings.dateToleranceDays]}
+                  max={30}
+                  step={1}
+                  onValueChange={(v) => onToleranceChange('dateToleranceDays', v[0])}
+                  className="w-full"
+                />
+              </div>
+            )}
+
+            {/* Text Fuzzy Threshold */}
             <div className="space-y-2">
               <div className="flex justify-between items-center">
-                <Label>Umbral de Similitud</Label>
+                <Label>Umbral de Similitud Textual (%)</Label>
                 <span className="text-sm font-medium">{toleranceSettings.textFuzzyThreshold}%</span>
               </div>
               <Slider
