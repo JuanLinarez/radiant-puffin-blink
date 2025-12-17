@@ -33,8 +33,25 @@ const ReconciliationSetup: React.FC = () => {
     setConfig(prev => ({ ...prev, [fileKey]: file }));
   };
 
-  const handleSwitchChange = (key: keyof Omit<ReconciliationConfig, 'file1' | 'file2'>, checked: boolean) => {
-    setConfig(prev => ({ ...prev, [key]: checked }));
+  const handleRelationSwitchChange = (key: keyof Pick<ReconciliationConfig, 'relationOneToOne' | 'relationOneToMany'>, checked: boolean) => {
+    if (checked) {
+      setConfig(prev => ({
+        ...prev,
+        relationOneToOne: key === 'relationOneToOne',
+        relationOneToMany: key === 'relationOneToMany',
+      }));
+    }
+  };
+
+  const handleToleranceSwitchChange = (key: keyof Pick<ReconciliationConfig, 'toleranceExact' | 'toleranceBalanced' | 'toleranceFlexible'>, checked: boolean) => {
+    if (checked) {
+      setConfig(prev => ({
+        ...prev,
+        toleranceExact: key === 'toleranceExact',
+        toleranceBalanced: key === 'toleranceBalanced',
+        toleranceFlexible: key === 'toleranceFlexible',
+      }));
+    }
   };
 
   const handleStartReconciliation = () => {
@@ -107,7 +124,7 @@ const ReconciliationSetup: React.FC = () => {
             <Switch
               id="relation-1-1"
               checked={config.relationOneToOne}
-              onCheckedChange={(checked) => handleSwitchChange('relationOneToOne', checked)}
+              onCheckedChange={(checked) => handleRelationSwitchChange('relationOneToOne', checked)}
             />
           </div>
           <div className="flex items-center justify-between p-2 rounded-md hover:bg-accent transition-colors">
@@ -118,7 +135,7 @@ const ReconciliationSetup: React.FC = () => {
             <Switch
               id="relation-1-n"
               checked={config.relationOneToMany}
-              onCheckedChange={(checked) => handleSwitchChange('relationOneToMany', checked)}
+              onCheckedChange={(checked) => handleRelationSwitchChange('relationOneToMany', checked)}
             />
           </div>
         </CardContent>
@@ -143,7 +160,7 @@ const ReconciliationSetup: React.FC = () => {
             <Switch
               id="tolerance-exact"
               checked={config.toleranceExact}
-              onCheckedChange={(checked) => handleSwitchChange('toleranceExact', checked)}
+              onCheckedChange={(checked) => handleToleranceSwitchChange('toleranceExact', checked)}
             />
           </div>
           <div className="flex items-center justify-between p-2 rounded-md hover:bg-accent transition-colors">
@@ -154,7 +171,7 @@ const ReconciliationSetup: React.FC = () => {
             <Switch
               id="tolerance-balanced"
               checked={config.toleranceBalanced}
-              onCheckedChange={(checked) => handleSwitchChange('toleranceBalanced', checked)}
+              onCheckedChange={(checked) => handleToleranceSwitchChange('toleranceBalanced', checked)}
             />
           </div>
           <div className="flex items-center justify-between p-2 rounded-md hover:bg-accent transition-colors">
@@ -165,7 +182,7 @@ const ReconciliationSetup: React.FC = () => {
             <Switch
               id="tolerance-flexible"
               checked={config.toleranceFlexible}
-              onCheckedChange={(checked) => handleSwitchChange('toleranceFlexible', checked)}
+              onCheckedChange={(checked) => handleToleranceSwitchChange('toleranceFlexible', checked)}
             />
           </div>
         </CardContent>
