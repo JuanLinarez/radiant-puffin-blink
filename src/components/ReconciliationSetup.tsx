@@ -85,7 +85,7 @@ const ReconciliationSetup: React.FC = () => {
     <div className="space-y-6">
       <h2 className="text-2xl font-semibold text-foreground mb-4">Configuración de Reconciliación</h2>
 
-      {/* Section 1: File Upload */}
+      {/* Section 1: File Upload (Unchanged) */}
       <Card className="shadow-xl rounded-xl border-none">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg font-medium text-primary">
@@ -119,47 +119,11 @@ const ReconciliationSetup: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* NEW Section 2: Connection Method */}
+      {/* Section 2: Record Relationship (Moved up) */}
       <Card className="shadow-xl rounded-xl border-none">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg font-medium text-primary">
-            <GitBranch className="w-5 h-5" /> 2. Método de Conexión
-          </CardTitle>
-          <CardDescription>
-            Define cómo se conectan los archivos entre sí para la conciliación.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between p-2 rounded-md hover:bg-accent transition-colors">
-            <Label htmlFor="connection-hub" className="flex flex-col space-y-1 cursor-pointer">
-              <span className="font-medium">Hub-and-spoke (Maestro)</span>
-              <p className="text-sm text-muted-foreground">Elige un archivo maestro y concilia los demás contra él (recomendado).</p>
-            </Label>
-            <Switch
-              id="connection-hub"
-              checked={config.connectionHubSpoke}
-              onCheckedChange={(checked) => handleConnectionSwitchChange('connectionHubSpoke', checked)}
-            />
-          </div>
-          <div className="flex items-center justify-between p-2 rounded-md hover:bg-accent transition-colors">
-            <Label htmlFor="connection-chain" className="flex flex-col space-y-1 cursor-pointer">
-              <span className="font-medium">Chain / Pipeline</span>
-              <p className="text-sm text-muted-foreground">A ↔ B ↔ C ↔ D, útil cuando cada archivo representa una etapa del proceso.</p>
-            </Label>
-            <Switch
-              id="connection-chain"
-              checked={config.connectionChain}
-              onCheckedChange={(checked) => handleConnectionSwitchChange('connectionChain', checked)}
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Section 3: Record Relationship (Updated Index) */}
-      <Card className="shadow-xl rounded-xl border-none">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg font-medium text-primary">
-            <Link className="w-5 h-5" /> 3. Relación de Registros
+            <Link className="w-5 h-5" /> 2. Relación de Registros
           </CardTitle>
           <CardDescription>
             Define cómo se espera que se relacionen los registros entre el Archivo A y el Archivo B.
@@ -191,11 +155,11 @@ const ReconciliationSetup: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Section 4: Comparison Tolerance (Updated Index) */}
+      {/* Section 3: Comparison Tolerance (Moved up) */}
       <Card className="shadow-xl rounded-xl border-none">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg font-medium text-primary">
-            <Settings className="w-5 h-5" /> 4. Nivel de Tolerancia
+            <Settings className="w-5 h-5" /> 3. Nivel de Tolerancia
           </CardTitle>
           <CardDescription>
             Selecciona la estrictez con la que se compararán los valores (e.g., montos).
@@ -233,6 +197,42 @@ const ReconciliationSetup: React.FC = () => {
               id="tolerance-flexible"
               checked={config.toleranceFlexible}
               onCheckedChange={(checked) => handleToleranceSwitchChange('toleranceFlexible', checked)}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Section 4: Connection Method (Moved down) */}
+      <Card className="shadow-xl rounded-xl border-none">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg font-medium text-primary">
+            <GitBranch className="w-5 h-5" /> 4. Método de Conexión
+          </CardTitle>
+          <CardDescription>
+            Define cómo se conectan los archivos entre sí para la conciliación.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between p-2 rounded-md hover:bg-accent transition-colors">
+            <Label htmlFor="connection-hub" className="flex flex-col space-y-1 cursor-pointer">
+              <span className="font-medium">Hub-and-spoke (Maestro)</span>
+              <p className="text-sm text-muted-foreground">Elige un archivo maestro y concilia los demás contra él (recomendado).</p>
+            </Label>
+            <Switch
+              id="connection-hub"
+              checked={config.connectionHubSpoke}
+              onCheckedChange={(checked) => handleConnectionSwitchChange('connectionHubSpoke', checked)}
+            />
+          </div>
+          <div className="flex items-center justify-between p-2 rounded-md hover:bg-accent transition-colors">
+            <Label htmlFor="connection-chain" className="flex flex-col space-y-1 cursor-pointer">
+              <span className="font-medium">Chain / Pipeline</span>
+              <p className="text-sm text-muted-foreground">A ↔ B ↔ C ↔ D, útil cuando cada archivo representa una etapa del proceso.</p>
+            </Label>
+            <Switch
+              id="connection-chain"
+              checked={config.connectionChain}
+              onCheckedChange={(checked) => handleConnectionSwitchChange('connectionChain', checked)}
             />
           </div>
         </CardContent>
