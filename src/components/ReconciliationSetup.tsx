@@ -1,50 +1,76 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
-import { Upload, Settings, Link, GitBranch } from "lucide-react";
+import { Upload, Link, GitBranch } from "lucide-react";
 import { showSuccess } from "@/utils/toast";
+import HardKeySelector from "./HardKeySelector";
+import SoftKeySelector from "./SoftKeySelector";
+import StrictnessControls from "./StrictnessControls";
+
+type StrictnessMode = 'Exacto' | 'Balanceado' | 'Flexible';
+
+interface ToleranceSettings {
+  amountTolerancePercent: number;
+  dateToleranceDays: number;
+  textFuzzyThreshold: number;
+  weighting: Record<string, number>;
+}
 
 interface ReconciliationConfig {
   file1: File | null;
   file2: File | null;
+  
+  // Connection Method (Step 6)
   connectionHubSpoke: boolean;
   connectionChain: boolean;
+  
+  // Record Relationship (Step 2)
   relationOneToOne: boolean;
   relationOneToMany: boolean;
-  toleranceExact: boolean;
-  toleranceBalanced: boolean;
-  toleranceFlexible: boolean;
+  
+  // Key Selection (Steps 3 & 4)
+  hardKeys: string[];
+  softKeys: string[];
+
+  // Strictness (Step 5)
+  strictnessMode: StrictnessMode;
+  toleranceSettings: ToleranceSettings;
 }
+
+// Conceptual list of all columns detected from files A and B
+const CONCEPTUAL_COLUMNS = ['Vendor Code', 'Currency', 'Company', 'Amount', 'Date', 'Vendor Name', 'Description'];
+
 
 const ReconciliationSetup: React.FC = () => {
   const [config, setConfig] = useState<ReconciliationConfig>({
     file1: null,
     file2: null,
-    connectionHubSpoke: true, // Default to Hub-and-spoke
+    
+    connectionHubSpoke: true,
     connectionChain: false,
+    
     relationOneToOne: true,
     relationOneToMany: false,
-    toleranceExact: true,
-    toleranceBalanced: false,
-    toleranceFlexible: false,
+    
+    hardKeys: ['Vendor Code', 'Currency', 'Company'], // Default hard keys
+    softKeys: [],
+    
+    strictnessMode: 'Exacto',
+    toleranceSettings: {
+      amountTolerancePercent: 0.5,
+      dateToleranceDays: 7,
+      textFuzzyThreshold: 80,
+      weighting: { Amount: 50, Date: 50, Text: 0 },
+    },
   });
 
+  // Handlers for existing sections
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, fileKey: keyof Pick<ReconciliationConfig, 'file1' | 'file2'>) => {
     const file = e.target.files ? e.target.files[0] : null;
     setConfig(prev => ({ ...prev, [fileKey]: file }));
-  };
-
-  const handleConnectionSwitchChange = (key: keyof Pick<ReconciliationConfig, 'connectionHubSpoke' | 'connectionChain'>, checked: boolean) => {
-    if (checked) {
-      setConfig(prev => ({
-        ...prev,
-        connectionHubSpoke: key === 'connectionHubSpoke',
-        connectionChain: key === 'connectionChain',
-      }));
-    }
   };
 
   const handleRelationSwitchChange = (key: keyof Pick<ReconciliationConfig, 'relationOneToOne' | 'relationOneToMany'>, checked: boolean) => {
@@ -57,35 +83,83 @@ const ReconciliationSetup: React.FC = () => {
     }
   };
 
-  const handleToleranceSwitchChange = (key: keyof Pick<ReconciliationConfig, 'toleranceExact' | 'toleranceBalanced' | 'toleranceFlexible'>, checked: boolean) => {
+  const handleConnectionSwitchChange = (key: keyof Pick<ReconciliationConfig, 'connectionHubSpoke' | 'connectionChain'>, checked: boolean) => {
     if (checked) {
       setConfig(prev => ({
         ...prev,
-        toleranceExact: key === 'toleranceExact',
-        toleranceBalanced: key === 'toleranceBalanced',
-        toleranceFlexible: key === 'toleranceFlexible',
+        connectionHubSpoke: key === 'connectionHubSpoke',
+        connectionChain: key === 'connectionChain',
       }));
     }
   };
 
+  // Handlers for NEW Key Selection sections
+  const handleHardKeyChange = (key: string, isSelected: boolean) => {
+    setConfig(prev => {
+      const newKeys = isSelected
+        ? [...new Set([...prev.hardKeys, key])]
+        : prev.hardKeys.filter(k => k !== key);
+      return { ...prev, hardKeys: newKeys };
+    });
+  };
+
+  const handleSoftKeyChange = (key: string, isSelected: boolean) => {
+    setConfig(prev => {
+      const newKeys = isSelected
+        ? [...new Set([...prev.softKeys, key])]
+        : prev.softKeys.filter(k => k !== key);
+      
+      // Logic to reset strictness mode if soft keys are removed and the current mode is no longer valid
+      let newStrictnessMode: StrictnessMode = prev.strictnessMode;
+      
+      const hasAmountOrDate = newKeys.some(k => ['Amount', 'Date'].includes(k));
+      const hasText = newKeys.some(k => ['Vendor Name', 'Description'].includes(k));
+
+      if (prev.strictnessMode === 'Balanceado' && !hasAmountOrDate) {
+          newStrictnessMode = 'Exacto';
+      }
+      if (prev.strictnessMode === 'Flexible' && !hasText) {
+          newStrictnessMode = 'Exacto';
+      }
+
+      return { ...prev, softKeys: newKeys, strictnessMode: newStrictnessMode };
+    });
+  };
+
+  // Handlers for Strictness Controls section
+  const handleStrictnessModeChange = (mode: StrictnessMode, checked: boolean) => {
+    if (checked) {
+      setConfig(prev => ({ ...prev, strictnessMode: mode }));
+    }
+  };
+
+  const handleToleranceSettingChange = (key: keyof ToleranceSettings, value: number | Record<string, number>) => {
+    setConfig(prev => ({
+      ...prev,
+      toleranceSettings: {
+        ...prev.toleranceSettings,
+        [key]: value,
+      },
+    }));
+  };
+
   const handleStartReconciliation = () => {
     if (!config.file1 || !config.file2) {
-      alert("Por favor, carga ambos archivos antes de iniciar la reconciliación.");
+      // This check is redundant due to disabled={!isReadyToStart} but good practice
       return;
     }
     
-    // Placeholder for actual reconciliation logic
     console.log("Starting reconciliation with config:", config);
     showSuccess("Configuración guardada. Iniciando proceso de reconciliación (simulado).");
   };
 
-  const isReadyToStart = config.file1 && config.file2;
+  const isReadyToStart = config.file1 && config.file2 && config.hardKeys.length > 0;
 
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-semibold text-foreground mb-4">Configuración de Reconciliación</h2>
 
-      {/* Section 1: File Upload (Unchanged) */}
+      {/* 1. Carga de Archivos Excel */}
       <Card className="shadow-xl rounded-xl border-none">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg font-medium text-primary">
@@ -119,7 +193,7 @@ const ReconciliationSetup: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Section 2: Record Relationship (Moved up) */}
+      {/* 2. Relación de Registros */}
       <Card className="shadow-xl rounded-xl border-none">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg font-medium text-primary">
@@ -155,58 +229,34 @@ const ReconciliationSetup: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Section 3: Comparison Tolerance (Moved up) */}
-      <Card className="shadow-xl rounded-xl border-none">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg font-medium text-primary">
-            <Settings className="w-5 h-5" /> 3. Nivel de Tolerancia
-          </CardTitle>
-          <CardDescription>
-            Selecciona la estrictez con la que se compararán los valores (e.g., montos).
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between p-2 rounded-md hover:bg-accent transition-colors">
-            <Label htmlFor="tolerance-exact" className="flex flex-col space-y-1 cursor-pointer">
-              <span className="font-medium">Exacto</span>
-              <p className="text-sm text-muted-foreground">Solo se aceptan coincidencias perfectas (0% de variación).</p>
-            </Label>
-            <Switch
-              id="tolerance-exact"
-              checked={config.toleranceExact}
-              onCheckedChange={(checked) => handleToleranceSwitchChange('toleranceExact', checked)}
-            />
-          </div>
-          <div className="flex items-center justify-between p-2 rounded-md hover:bg-accent transition-colors">
-            <Label htmlFor="tolerance-balanced" className="flex flex-col space-y-1 cursor-pointer">
-              <span className="font-medium">Balanceado</span>
-              <p className="text-sm text-muted-foreground">Permite pequeñas variaciones (e.g., hasta 0.5% o un monto fijo menor).</p>
-            </Label>
-            <Switch
-              id="tolerance-balanced"
-              checked={config.toleranceBalanced}
-              onCheckedChange={(checked) => handleToleranceSwitchChange('toleranceBalanced', checked)}
-            />
-          </div>
-          <div className="flex items-center justify-between p-2 rounded-md hover:bg-accent transition-colors">
-            <Label htmlFor="tolerance-flexible" className="flex flex-col space-y-1 cursor-pointer">
-              <span className="font-medium">Flexible</span>
-              <p className="text-sm text-muted-foreground">Permite variaciones significativas o utiliza lógica de coincidencia difusa.</p>
-            </Label>
-            <Switch
-              id="tolerance-flexible"
-              checked={config.toleranceFlexible}
-              onCheckedChange={(checked) => handleToleranceSwitchChange('toleranceFlexible', checked)}
-            />
-          </div>
-        </CardContent>
-      </Card>
+      {/* 3. Hard Keys (Required) */}
+      <HardKeySelector
+        availableColumns={CONCEPTUAL_COLUMNS}
+        selectedKeys={config.hardKeys}
+        onKeyChange={handleHardKeyChange}
+      />
 
-      {/* Section 4: Connection Method (Moved down) */}
+      {/* 4. Soft Keys (Optional) */}
+      <SoftKeySelector
+        availableColumns={CONCEPTUAL_COLUMNS}
+        selectedKeys={config.softKeys}
+        onKeyChange={handleSoftKeyChange}
+      />
+
+      {/* 5. Strictness / Nivel de Tolerancia */}
+      <StrictnessControls
+        softKeys={config.softKeys}
+        currentMode={config.strictnessMode}
+        onModeChange={handleStrictnessModeChange}
+        toleranceSettings={config.toleranceSettings}
+        onToleranceChange={handleToleranceSettingChange}
+      />
+
+      {/* 6. Método de Conexión */}
       <Card className="shadow-xl rounded-xl border-none">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg font-medium text-primary">
-            <GitBranch className="w-5 h-5" /> 4. Método de Conexión
+            <GitBranch className="w-5 h-5" /> 6. Método de Conexión
           </CardTitle>
           <CardDescription>
             Define cómo se conectan los archivos entre sí para la conciliación.
@@ -249,7 +299,7 @@ const ReconciliationSetup: React.FC = () => {
           Iniciar Reconciliación
         </Button>
         {!isReadyToStart && (
-          <p className="mt-2 text-sm text-destructive">Carga ambos archivos para continuar.</p>
+          <p className="mt-2 text-sm text-destructive">Carga ambos archivos y selecciona al menos una Hard Key para continuar.</p>
         )}
       </div>
     </div>
