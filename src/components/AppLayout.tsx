@@ -7,9 +7,9 @@ interface AppLayoutProps {
 
 const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   return (
-    <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="dark flex min-h-screen bg-background">
       {/* Sidebar Container */}
-      <div className="hidden lg:block w-64 flex-shrink-0">
+      <div className="hidden lg:block w-20 flex-shrink-0">
         <Sidebar />
       </div>
       
