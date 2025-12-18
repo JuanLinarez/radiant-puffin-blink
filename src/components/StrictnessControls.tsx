@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { cn } from '@/lib/utils';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import ThresholdVisualizer from './ThresholdVisualizer';
 
 // --- Types for Strictness Controls ---
 type StrictnessMode = 'Exacto' | 'Balanceado' | 'Flexible';
@@ -363,6 +364,12 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
           <div className="space-y-4">
             <h4 className="font-semibold text-md text-primary">Umbrales de Clasificación de Match</h4>
             <p className="text-sm text-muted-foreground mb-4">Define los puntajes mínimos requeridos para clasificar una coincidencia.</p>
+
+            <ThresholdVisualizer 
+              auto={toleranceSettings.autoMatchThreshold}
+              suggested={toleranceSettings.suggestedMatchThreshold}
+              review={toleranceSettings.reviewThreshold}
+            />
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {/* Auto Match Threshold */}
