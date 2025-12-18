@@ -5,7 +5,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { cn } from '@/lib/utils';
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"; // Import Alert components
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 // --- Types for Strictness Controls ---
 type StrictnessMode = 'Exacto' | 'Balanceado' | 'Flexible';
@@ -24,7 +24,7 @@ const WeightingSlider: React.FC<WeightingSliderProps> = ({ label, value, onChang
     </div>
     <Slider
       value={[value]}
-      max={100} // Fixed max to 100 to ensure the slider is always draggable
+      max={100} // Fixed max to 100
       step={1}
       onValueChange={(v) => onChange(v[0])}
       className="w-full"
@@ -39,7 +39,7 @@ interface ToleranceSettings {
   weighting: Record<string, number>;
   autoMatchThreshold: number;
   suggestedMatchThreshold: number;
-  reviewThreshold: number; // NEW
+  reviewThreshold: number;
 }
 
 interface StrictnessControlsProps {
@@ -81,7 +81,7 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
     return weights;
   }, [softKeys, currentMode, hasText]);
 
-  // --- Normalization Logic (New useEffect) ---
+  // --- Normalization Logic ---
   useEffect(() => {
     if (currentMode === 'Exacto' || availableWeights.length === 0) {
       return;
@@ -89,7 +89,6 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
 
     const totalWeight = availableWeights.reduce((sum, key) => sum + (currentWeights[key] || 0), 0);
     
-    // Check if the current active weights already sum to 100%
     if (totalWeight === 100) {
       return;
     }
@@ -109,23 +108,21 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
       currentTotal += weight;
     });
     
-    // Ensure all non-active keys are reset to 0 (or removed, but setting to 0 is safer for state consistency)
+    // Ensure all non-active keys are reset to 0
     Object.keys(currentWeights).forEach(key => {
         if (!availableWeights.includes(key)) {
             newWeighting[key] = 0;
         }
     });
 
-    // Only update if the calculated weights are different from the current state
     const isDifferent = availableWeights.some(key => newWeighting[key] !== currentWeights[key]);
 
     if (isDifferent) {
         onToleranceChange('weighting', newWeighting);
     }
 
-  // We depend on availableWeights (which changes with softKeys and currentMode) and currentWeights (to check if normalization is needed)
   }, [availableWeights, currentWeights, currentMode, onToleranceChange]);
-  // -------------------------------------------
+  // ---------------------------
 
   // Calculate total weight based ONLY on currently available weights
   const totalWeight = availableWeights.reduce((sum, key) => sum + (currentWeights[key] || 0), 0);
@@ -144,14 +141,11 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
     const remainingWeightForOthers = 100 - newValue;
 
     if (numOtherKeys === 0) {
-      // Only one key active, it must be 100%
       newWeighting[keyToChange] = 100;
     } else if (numOtherKeys === 1) {
-      // Two keys active: adjust the other one automatically
       const otherKey = otherKeys[0];
       newWeighting[otherKey] = remainingWeightForOthers;
     } else if (numOtherKeys === 2) {
-      // Three keys active: distribute the remaining weight proportionally between the other two
       const [key1, key2] = otherKeys;
       
       const currentWeight1 = currentWeights[key1] || 0;
@@ -159,17 +153,12 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
       const currentSumOfOthers = currentWeight1 + currentWeight2;
 
       if (currentSumOfOthers === 0) {
-        // If the other two were zero, distribute equally
         newWeighting[key1] = Math.floor(remainingWeightForOthers / 2);
         newWeighting[key2] = remainingWeightForOthers - newWeighting[key1];
       } else {
-        // Distribute proportionally
         const ratio1 = currentWeight1 / currentSumOfOthers;
-        const ratio2 = currentWeight2 / currentSumOfOthers;
-        
-        // Calculate new weights, rounding to ensure total is 100
         const newWeight1 = Math.round(remainingWeightForOthers * ratio1);
-        const newWeight2 = remainingWeightForOthers - newWeight1; // Ensure total is exactly remainingWeightForOthers
+        const newWeight2 = remainingWeightForOthers - newWeight1;
         
         newWeighting[key1] = newWeight1;
         newWeighting[key2] = newWeight2;
@@ -178,6 +167,33 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
 
     onToleranceChange('weighting', newWeighting);
   };
+  
+  // --- Handlers for Classification Thresholds (New Logic) ---
+  const handleAutoMatchChange = (newValue: number) => {
+    const suggested = toleranceSettings.suggestedMatchThreshold;
+    // Must be at least 1 point higher than suggested, and max 100
+    const validatedValue = Math.min(100, Math.max(newValue, suggested + 1));
+    onToleranceChange('autoMatchThreshold', validatedValue);
+  };
+
+  const handleSuggestedMatchChange = (newValue: number) => {
+    const auto = toleranceSettings.autoMatchThreshold;
+    const review = toleranceSettings.reviewThreshold;
+    
+    // Must be less than auto and greater than review
+    let validatedValue = Math.min(newValue, auto - 1);
+    validatedValue = Math.max(validatedValue, review + 1);
+    
+    onToleranceChange('suggestedMatchThreshold', validatedValue);
+  };
+
+  const handleReviewThresholdChange = (newValue: number) => {
+    const suggested = toleranceSettings.suggestedMatchThreshold;
+    // Must be less than suggested, and min 0
+    const validatedValue = Math.max(0, Math.min(newValue, suggested - 1));
+    onToleranceChange('reviewThreshold', validatedValue);
+  };
+  // ----------------------------------------------------------
   
   // Helper to check if we should show scoring controls
   const showScoringControls = currentMode !== 'Exacto' && availableWeights.length > 0;
@@ -343,9 +359,9 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
               <Slider
                 value={[toleranceSettings.autoMatchThreshold]}
                 max={100}
-                min={toleranceSettings.suggestedMatchThreshold + 1} // Must be higher than suggested
+                min={0} // Static min for visual proportionality
                 step={1}
-                onValueChange={(v) => onToleranceChange('autoMatchThreshold', v[0])}
+                onValueChange={(v) => handleAutoMatchChange(v[0])}
                 className="w-full"
               />
               <p className="text-xs text-muted-foreground">Coincidencias con este puntaje o superior se marcan automáticamente como Match.</p>
@@ -359,16 +375,16 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
               </div>
               <Slider
                 value={[toleranceSettings.suggestedMatchThreshold]}
-                max={toleranceSettings.autoMatchThreshold - 1} // Must be lower than auto
-                min={toleranceSettings.reviewThreshold + 1} // Must be higher than review
+                max={100} // Static max for visual proportionality
+                min={0} // Static min for visual proportionality
                 step={1}
-                onValueChange={(v) => onToleranceChange('suggestedMatchThreshold', v[0])}
+                onValueChange={(v) => handleSuggestedMatchChange(v[0])}
                 className="w-full"
               />
               <p className="text-xs text-muted-foreground">Coincidencias entre este puntaje y el Match Automático se marcan como Sugeridas.</p>
             </div>
             
-            {/* Review Threshold (NEW) */}
+            {/* Review Threshold */}
             <div className="space-y-2">
               <div className="flex justify-between items-center">
                 <Label>Para Revisar (Score %)</Label>
@@ -376,10 +392,10 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
               </div>
               <Slider
                 value={[toleranceSettings.reviewThreshold]}
-                max={toleranceSettings.suggestedMatchThreshold - 1} // Must be lower than suggested
-                min={0}
+                max={100} // Static max for visual proportionality
+                min={0} // Static min for visual proportionality
                 step={1}
-                onValueChange={(v) => onToleranceChange('reviewThreshold', v[0])}
+                onValueChange={(v) => handleReviewThresholdChange(v[0])}
                 className="w-full"
               />
               <p className="text-xs text-muted-foreground">Coincidencias entre este puntaje y el Match Sugerido se marcan como 'Para Revisar'. Por debajo de este puntaje, se consideran 'No Match'.</p>
