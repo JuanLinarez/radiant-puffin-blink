@@ -26,7 +26,7 @@ interface ReconciliationConfig {
   file1: File | null;
   file2: File | null;
   
-  // Connection Method (Step 6)
+  // Connection Method (Step 3)
   connectionHubSpoke: boolean;
   connectionChain: boolean;
   
@@ -34,11 +34,11 @@ interface ReconciliationConfig {
   relationOneToOne: boolean;
   relationOneToMany: boolean;
   
-  // Key Selection (Steps 3 & 4)
+  // Key Selection (Steps 4 & 5)
   hardKeys: string[];
   softKeys: string[];
 
-  // Strictness (Step 5)
+  // Strictness (Step 6)
   strictnessMode: StrictnessMode;
   toleranceSettings: ToleranceSettings;
 }
@@ -236,34 +236,11 @@ const ReconciliationSetup: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* 3. Hard Keys (Required) */}
-      <HardKeySelector
-        availableColumns={CONCEPTUAL_COLUMNS}
-        selectedKeys={config.hardKeys}
-        onKeyChange={handleHardKeyChange}
-      />
-
-      {/* 4. Soft Keys (Optional) */}
-      <SoftKeySelector
-        availableColumns={CONCEPTUAL_COLUMNS}
-        selectedKeys={config.softKeys}
-        onKeyChange={handleSoftKeyChange}
-      />
-
-      {/* 5. Strictness / Nivel de Tolerancia */}
-      <StrictnessControls
-        softKeys={config.softKeys}
-        currentMode={config.strictnessMode}
-        onModeChange={handleStrictnessModeChange}
-        toleranceSettings={config.toleranceSettings}
-        onToleranceChange={handleToleranceSettingChange}
-      />
-
-      {/* 6. Método de Conexión */}
+      {/* 3. Método de Conexión (MOVED) */}
       <Card className="shadow-xl rounded-xl border-none">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg font-medium text-primary">
-            <GitBranch className="w-5 h-5" /> 6. Método de Conexión
+            <GitBranch className="w-5 h-5" /> 3. Método de Conexión
           </CardTitle>
           <CardDescription>
             Define cómo se conectan los archivos entre sí para la conciliación.
@@ -294,6 +271,29 @@ const ReconciliationSetup: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* 4. Hard Keys (Required) (RENAMED) */}
+      <HardKeySelector
+        availableColumns={CONCEPTUAL_COLUMNS}
+        selectedKeys={config.hardKeys}
+        onKeyChange={handleHardKeyChange}
+      />
+
+      {/* 5. Soft Keys (Optional) (RENAMED) */}
+      <SoftKeySelector
+        availableColumns={CONCEPTUAL_COLUMNS}
+        selectedKeys={config.softKeys}
+        onKeyChange={handleSoftKeyChange}
+      />
+
+      {/* 6. Strictness / Nivel de Tolerancia (RENAMED) */}
+      <StrictnessControls
+        softKeys={config.softKeys}
+        currentMode={config.strictnessMode}
+        onModeChange={handleStrictnessModeChange}
+        toleranceSettings={config.toleranceSettings}
+        onToleranceChange={handleToleranceSettingChange}
+      />
 
       {/* Start Button */}
       <div className="text-center pt-4">

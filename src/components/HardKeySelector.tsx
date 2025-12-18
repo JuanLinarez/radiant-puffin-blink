@@ -20,7 +20,7 @@ const HardKeySelector: React.FC<HardKeySelectorProps> = ({ availableColumns, sel
     <Card className="shadow-xl rounded-xl border-none">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-lg font-medium text-primary">
-          <Key className="w-5 h-5" /> 3. Seleccione Hard Keys (Required)
+          <Key className="w-5 h-5" /> 4. Seleccione Hard Keys (Required)
         </CardTitle>
         <CardDescription>
           Campos que deben coincidir sí o sí para que dos registros se consideren un match.
