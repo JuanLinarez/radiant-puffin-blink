@@ -210,7 +210,7 @@ const ReconciliationSetup: React.FC = () => {
             Define cómo se espera que se relacionen los registros entre el Archivo A y el Archivo B.
           </CardDescription>
         </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <CardContent className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div className="flex items-center justify-between p-2 rounded-md hover:bg-accent transition-colors border">
             <Label htmlFor="relation-1-1" className="flex flex-col space-y-1 cursor-pointer pr-2">
               <span className="font-medium">1:1 (Uno a Uno)</span>
@@ -269,7 +269,7 @@ const ReconciliationSetup: React.FC = () => {
             Define cómo se conectan los archivos entre sí para la conciliación.
           </CardDescription>
         </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <CardContent className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div className="flex items-center justify-between p-2 rounded-md hover:bg-accent transition-colors border">
             <Label htmlFor="connection-hub" className="flex flex-col space-y-1 cursor-pointer pr-2">
               <span className="font-medium">Hub-and-spoke (Maestro)</span>
