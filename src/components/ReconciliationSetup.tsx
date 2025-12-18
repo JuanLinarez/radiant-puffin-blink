@@ -4,12 +4,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
-import { Upload, Link, GitBranch } from "lucide-react";
+import { Upload, Link, GitBranch, Key } from "lucide-react";
 import { showSuccess } from "@/utils/toast";
 import HardKeySelector from "./HardKeySelector";
 import SoftKeySelector from "./SoftKeySelector";
 import StrictnessControls from "./StrictnessControls";
 import { useNavigate, useLocation } from "react-router-dom";
+import { Badge } from "@/components/ui/badge";
 
 type StrictnessMode = 'Exacto' | 'Balanceado' | 'Flexible';
 
@@ -186,124 +187,152 @@ const ReconciliationSetup: React.FC = () => {
   
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-semibold text-foreground mb-4">Configuración de Reconciliación</h2>
+      <h2 className="text-2xl font-semibold text-foreground mb-4">
+        {showSoftKeySteps ? "Configuración de Soft Keys y Tolerancia" : "Configuración de Reconciliación"}
+      </h2>
 
-      {/* 1. Carga de Archivos Excel */}
-      <Card className="shadow-xl rounded-xl border-none">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg font-medium text-primary">
-            <Upload className="w-5 h-5" /> 1. Carga de Archivos Excel
-          </CardTitle>
-          <CardDescription>
-            Selecciona los dos archivos que deseas conciliar.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-2">
-            <Label htmlFor="file1">Archivo de Origen (A)</Label>
-            <Input 
-              id="file1" 
-              type="file" 
-              accept=".xlsx, .xls" 
-              onChange={(e) => handleFileChange(e, 'file1')} 
-            />
-            {/* Display file name if loaded, even if restored from state */}
-            {config.file1 && <p className="text-sm text-muted-foreground truncate">Cargado: {config.file1.name}</p>}
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="file2">Archivo a Reconciliar (B)</Label>
-            <Input 
-              id="file2" 
-              type="file" 
-              accept=".xlsx, .xls" 
-              onChange={(e) => handleFileChange(e, 'file2')} 
-            />
-            {/* Display file name if loaded, even if restored from state */}
-            {config.file2 && <p className="text-sm text-muted-foreground truncate">Cargado: {config.file2.name}</p>}
-          </div>
-        </CardContent>
-      </Card>
+      {/* Hard Keys Reference (Always visible if Soft Key steps are active) */}
+      {showSoftKeySteps && (
+        <Card className="shadow-xl rounded-xl border-l-4 border-primary">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg font-medium text-primary">
+              <Key className="w-5 h-5" /> Hard Keys Seleccionadas (Referencia)
+            </CardTitle>
+            <CardDescription>
+              Estos campos se usan para la coincidencia exacta y no pueden ser modificados en esta etapa.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-wrap gap-2">
+            {config.hardKeys.map(key => (
+              <Badge key={key} variant="default" className="bg-primary hover:bg-primary/90">
+                {key}
+              </Badge>
+            ))}
+          </CardContent>
+        </Card>
+      )}
 
-      {/* 2. Relación de Registros */}
-      <Card className="shadow-xl rounded-xl border-none">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg font-medium text-primary">
-            <Link className="w-5 h-5" /> 2. Relación de Registros
-          </CardTitle>
-          <CardDescription>
-            Define cómo se espera que se relacionen los registros entre el Archivo A y el Archivo B.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <div className="flex items-center justify-between p-2 rounded-md hover:bg-accent transition-colors border">
-            <Label htmlFor="relation-1-1" className="flex flex-col space-y-1 cursor-pointer pr-2">
-              <span className="font-medium">1:1 (Uno a Uno)</span>
-              <p className="text-xs text-muted-foreground">Cada registro en A coincide con exactamente un registro en B.</p>
-            </Label>
-            <Switch
-              id="relation-1-1"
-              checked={config.relationOneToOne}
-              onCheckedChange={(checked) => handleRelationSwitchChange('relationOneToOne', checked)}
-            />
-          </div>
-          <div className="flex items-center justify-between p-2 rounded-md hover:bg-accent transition-colors border">
-            <Label htmlFor="relation-1-n" className="flex flex-col space-y-1 cursor-pointer pr-2">
-              <span className="font-medium">1:Muchos / Muchos:1</span>
-              <p className="text-xs text-muted-foreground">Permite que un registro en un archivo coincida con múltiples registros en el otro.</p>
-            </Label>
-            <Switch
-              id="relation-1-n"
-              checked={config.relationOneToMany}
-              onCheckedChange={(checked) => handleRelationSwitchChange('relationOneToMany', checked)}
-            />
-          </div>
-        </CardContent>
-      </Card>
+      {/* Initial Setup Steps (Hidden if Soft Key steps are active) */}
+      {!showSoftKeySteps && (
+        <>
+          {/* 1. Carga de Archivos Excel */}
+          <Card className="shadow-xl rounded-xl border-none">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg font-medium text-primary">
+                <Upload className="w-5 h-5" /> 1. Carga de Archivos Excel
+              </CardTitle>
+              <CardDescription>
+                Selecciona los dos archivos que deseas conciliar.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="file1">Archivo de Origen (A)</Label>
+                <Input 
+                  id="file1" 
+                  type="file" 
+                  accept=".xlsx, .xls" 
+                  onChange={(e) => handleFileChange(e, 'file1')} 
+                />
+                {/* Display file name if loaded, even if restored from state */}
+                {config.file1 && <p className="text-sm text-muted-foreground truncate">Cargado: {config.file1.name}</p>}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="file2">Archivo a Reconciliar (B)</Label>
+                <Input 
+                  id="file2" 
+                  type="file" 
+                  accept=".xlsx, .xls" 
+                  onChange={(e) => handleFileChange(e, 'file2')} 
+                />
+                {/* Display file name if loaded, even if restored from state */}
+                {config.file2 && <p className="text-sm text-muted-foreground truncate">Cargado: {config.file2.name}</p>}
+              </div>
+            </CardContent>
+          </Card>
 
-      {/* 3. Método de Conexión */}
-      <Card className="shadow-xl rounded-xl border-none">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg font-medium text-primary">
-            <GitBranch className="w-5 h-5" /> 3. Método de Conexión
-          </CardTitle>
-          <CardDescription>
-            Define cómo se conectan los archivos entre sí para la conciliación.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <div className="flex items-center justify-between p-2 rounded-md hover:bg-accent transition-colors border">
-            <Label htmlFor="connection-hub" className="flex flex-col space-y-1 cursor-pointer pr-2">
-              <span className="font-medium">Hub-and-spoke (Maestro)</span>
-              <p className="text-xs text-muted-foreground">Elige un archivo maestro y concilia los demás contra él (recomendado).</p>
-            </Label>
-            <Switch
-              id="connection-hub"
-              checked={config.connectionHubSpoke}
-              onCheckedChange={(checked) => handleConnectionSwitchChange('connectionHubSpoke', checked)}
-            />
-          </div>
-          <div className="flex items-center justify-between p-2 rounded-md hover:bg-accent transition-colors border">
-            <Label htmlFor="connection-chain" className="flex flex-col space-y-1 cursor-pointer pr-2">
-              <span className="font-medium">Chain / Pipeline</span>
-              <p className="text-xs text-muted-foreground">A ↔ B ↔ C ↔ D, útil cuando cada archivo representa una etapa del proceso.</p>
-            </Label>
-            <Switch
-              id="connection-chain"
-              checked={config.connectionChain}
-              onCheckedChange={(checked) => handleConnectionSwitchChange('connectionChain', checked)}
-            />
-          </div>
-        </CardContent>
-      </Card>
+          {/* 2. Relación de Registros */}
+          <Card className="shadow-xl rounded-xl border-none">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg font-medium text-primary">
+                <Link className="w-5 h-5" /> 2. Relación de Registros
+              </CardTitle>
+              <CardDescription>
+                Define cómo se espera que se relacionen los registros entre el Archivo A y el Archivo B.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div className="flex items-center justify-between p-2 rounded-md hover:bg-accent transition-colors border">
+                <Label htmlFor="relation-1-1" className="flex flex-col space-y-1 cursor-pointer pr-2">
+                  <span className="font-medium">1:1 (Uno a Uno)</span>
+                  <p className="text-xs text-muted-foreground">Cada registro en A coincide con exactamente un registro en B.</p>
+                </Label>
+                <Switch
+                  id="relation-1-1"
+                  checked={config.relationOneToOne}
+                  onCheckedChange={(checked) => handleRelationSwitchChange('relationOneToOne', checked)}
+                />
+              </div>
+              <div className="flex items-center justify-between p-2 rounded-md hover:bg-accent transition-colors border">
+                <Label htmlFor="relation-1-n" className="flex flex-col space-y-1 cursor-pointer pr-2">
+                  <span className="font-medium">1:Muchos / Muchos:1</span>
+                  <p className="text-xs text-muted-foreground">Permite que un registro en un archivo coincida con múltiples registros en el otro.</p>
+                </Label>
+                <Switch
+                  id="relation-1-n"
+                  checked={config.relationOneToMany}
+                  onCheckedChange={(checked) => handleRelationSwitchChange('relationOneToMany', checked)}
+                />
+              </div>
+            </CardContent>
+          </Card>
 
-      {/* 4. Hard Keys (Required) */}
-      <HardKeySelector
-        availableColumns={CONCEPTUAL_COLUMNS}
-        selectedKeys={config.hardKeys}
-        onKeyChange={handleHardKeyChange}
-      />
+          {/* 3. Método de Conexión */}
+          <Card className="shadow-xl rounded-xl border-none">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg font-medium text-primary">
+                <GitBranch className="w-5 h-5" /> 3. Método de Conexión
+              </CardTitle>
+              <CardDescription>
+                Define cómo se conectan los archivos entre sí para la conciliación.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div className="flex items-center justify-between p-2 rounded-md hover:bg-accent transition-colors border">
+                <Label htmlFor="connection-hub" className="flex flex-col space-y-1 cursor-pointer pr-2">
+                  <span className="font-medium">Hub-and-spoke (Maestro)</span>
+                  <p className="text-xs text-muted-foreground">Elige un archivo maestro y concilia los demás contra él (recomendado).</p>
+                </Label>
+                <Switch
+                  id="connection-hub"
+                  checked={config.connectionHubSpoke}
+                  onCheckedChange={(checked) => handleConnectionSwitchChange('connectionHubSpoke', checked)}
+                />
+              </div>
+              <div className="flex items-center justify-between p-2 rounded-md hover:bg-accent transition-colors border">
+                <Label htmlFor="connection-chain" className="flex flex-col space-y-1 cursor-pointer pr-2">
+                  <span className="font-medium">Chain / Pipeline</span>
+                  <p className="text-xs text-muted-foreground">A ↔ B ↔ C ↔ D, útil cuando cada archivo representa una etapa del proceso.</p>
+                </Label>
+                <Switch
+                  id="connection-chain"
+                  checked={config.connectionChain}
+                  onCheckedChange={(checked) => handleConnectionSwitchChange('connectionChain', checked)}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* 4. Hard Keys (Required) */}
+          <HardKeySelector
+            availableColumns={CONCEPTUAL_COLUMNS}
+            selectedKeys={config.hardKeys}
+            onKeyChange={handleHardKeyChange}
+          />
+        </>
+      )}
       
-      {/* 6. Soft Keys (Optional) - Only visible if user chooses to continue */}
+      {/* 6. Soft Keys (Optional) - Always visible if Soft Key steps are active */}
       {showSoftKeySteps && (
         <SoftKeySelector
           availableColumns={CONCEPTUAL_COLUMNS}
@@ -312,7 +341,7 @@ const ReconciliationSetup: React.FC = () => {
         />
       )}
 
-      {/* 7. Strictness / Nivel de Tolerancia - Only visible if user chooses to continue */}
+      {/* 7. Strictness / Nivel de Tolerancia - Always visible if Soft Key steps are active */}
       {showSoftKeySteps && (
         <StrictnessControls
           softKeys={config.softKeys}
@@ -331,7 +360,7 @@ const ReconciliationSetup: React.FC = () => {
           disabled={!isReadyToStart}
           className="w-full md:w-auto"
         >
-          Iniciar Reconciliación
+          {showSoftKeySteps ? "Ejecutar Conciliación Final" : "Iniciar Reconciliación"}
         </Button>
         {!isReadyToStart && (
           <p className="mt-2 text-sm text-destructive">Selecciona al menos una Hard Key para continuar.</p>
