@@ -20,7 +20,7 @@ const SoftKeySelector: React.FC<SoftKeySelectorProps> = ({ availableColumns, sel
     <Card className="shadow-xl rounded-xl border-none">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-lg font-medium text-primary">
-          <Zap className="w-5 h-5" /> 5. Soft Keys (Optional)
+          <Zap className="w-5 h-5" /> 6. Soft Keys (Optional)
         </CardTitle>
         <CardDescription>
           Campos que ayudan a elegir el mejor match, permitiendo cierta tolerancia o coincidencia difusa.

@@ -9,6 +9,7 @@ import { showSuccess } from "@/utils/toast";
 import HardKeySelector from "./HardKeySelector";
 import SoftKeySelector from "./SoftKeySelector";
 import StrictnessControls from "./StrictnessControls";
+import HardKeyResultsPreview from "./HardKeyResultsPreview"; // Import new component
 
 type StrictnessMode = 'Exacto' | 'Balanceado' | 'Flexible';
 
@@ -34,11 +35,11 @@ interface ReconciliationConfig {
   relationOneToOne: boolean;
   relationOneToMany: boolean;
   
-  // Key Selection (Steps 4 & 5)
+  // Key Selection (Steps 4 & 6)
   hardKeys: string[];
   softKeys: string[];
 
-  // Strictness (Step 6)
+  // Strictness (Step 7)
   strictnessMode: StrictnessMode;
   toleranceSettings: ToleranceSettings;
 }
@@ -73,11 +74,16 @@ const ReconciliationSetup: React.FC = () => {
       reviewThreshold: 40, // Default value for the new threshold
     },
   });
+  
+  // New state to control visibility of Soft Keys and Strictness steps
+  const [showSoftKeySteps, setShowSoftKeySteps] = useState(false);
 
   // Handlers for existing sections
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, fileKey: keyof Pick<ReconciliationConfig, 'file1' | 'file2'>) => {
     const file = e.target.files ? e.target.files[0] : null;
     setConfig(prev => ({ ...prev, [fileKey]: file }));
+    // Reset soft key steps visibility if files change
+    setShowSoftKeySteps(false);
   };
 
   const handleRelationSwitchChange = (key: keyof Pick<ReconciliationConfig, 'relationOneToOne' | 'relationOneToMany'>, checked: boolean) => {
@@ -106,6 +112,10 @@ const ReconciliationSetup: React.FC = () => {
       const newKeys = isSelected
         ? [...new Set([...prev.hardKeys, key])]
         : prev.hardKeys.filter(k => k !== key);
+      
+      // If hard keys change, reset soft key steps visibility
+      setShowSoftKeySteps(false);
+      
       return { ...prev, hardKeys: newKeys };
     });
   };
@@ -134,6 +144,16 @@ const ReconciliationSetup: React.FC = () => {
     });
   };
 
+  // Handler for the new HardKeyResultsPreview component
+  const handlePreviewAction = (action: 'continue_soft_keys' | 'review_hard_keys') => {
+    if (action === 'continue_soft_keys') {
+      setShowSoftKeySteps(true);
+    } else {
+      // If they choose to review hard keys, we hide soft key steps
+      setShowSoftKeySteps(false);
+    }
+  };
+
   // Handlers for Strictness Controls section
   const handleStrictnessModeChange = (mode: StrictnessMode, checked: boolean) => {
     if (checked) {
@@ -152,7 +172,7 @@ const ReconciliationSetup: React.FC = () => {
   };
 
   const handleStartReconciliation = () => {
-    if (!config.file1 || !config.file2) {
+    if (!config.file1 || !config.file2 || config.hardKeys.length === 0) {
       return;
     }
     
@@ -161,6 +181,9 @@ const ReconciliationSetup: React.FC = () => {
   };
 
   const isReadyToStart = config.file1 && config.file2 && config.hardKeys.length > 0;
+  
+  // Determine if the preview step should be shown
+  const showPreview = config.file1 && config.file2 && config.hardKeys.length > 0;
 
   return (
     <div className="space-y-6">
@@ -236,7 +259,7 @@ const ReconciliationSetup: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* 3. Método de Conexión (MOVED) */}
+      {/* 3. Método de Conexión */}
       <Card className="shadow-xl rounded-xl border-none">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg font-medium text-primary">
@@ -272,41 +295,56 @@ const ReconciliationSetup: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* 4. Hard Keys (Required) (RENAMED) */}
+      {/* 4. Hard Keys (Required) */}
       <HardKeySelector
         availableColumns={CONCEPTUAL_COLUMNS}
         selectedKeys={config.hardKeys}
         onKeyChange={handleHardKeyChange}
       />
+      
+      {/* 5. Hard Key Results Preview (New Step) */}
+      {showPreview && (
+        <HardKeyResultsPreview 
+          hardKeys={config.hardKeys}
+          onAction={handlePreviewAction}
+        />
+      )}
 
-      {/* 5. Soft Keys (Optional) (RENAMED) */}
-      <SoftKeySelector
-        availableColumns={CONCEPTUAL_COLUMNS}
-        selectedKeys={config.softKeys}
-        onKeyChange={handleSoftKeyChange}
-      />
+      {/* 6. Soft Keys (Optional) - Only visible if user chooses to continue */}
+      {showSoftKeySteps && (
+        <SoftKeySelector
+          availableColumns={CONCEPTUAL_COLUMNS}
+          selectedKeys={config.softKeys}
+          onKeyChange={handleSoftKeyChange}
+        />
+      )}
 
-      {/* 6. Strictness / Nivel de Tolerancia (RENAMED) */}
-      <StrictnessControls
-        softKeys={config.softKeys}
-        currentMode={config.strictnessMode}
-        onModeChange={handleStrictnessModeChange}
-        toleranceSettings={config.toleranceSettings}
-        onToleranceChange={handleToleranceSettingChange}
-      />
+      {/* 7. Strictness / Nivel de Tolerancia - Only visible if user chooses to continue */}
+      {showSoftKeySteps && (
+        <StrictnessControls
+          softKeys={config.softKeys}
+          currentMode={config.strictnessMode}
+          onModeChange={handleStrictnessModeChange}
+          toleranceSettings={config.toleranceSettings}
+          onToleranceChange={handleToleranceSettingChange}
+        />
+      )}
 
       {/* Start Button */}
       <div className="text-center pt-4">
         <Button 
           size="lg" 
           onClick={handleStartReconciliation} 
-          disabled={!isReadyToStart}
+          disabled={!isReadyToStart || (showPreview && !showSoftKeySteps)}
           className="w-full md:w-auto"
         >
           Iniciar Reconciliación
         </Button>
         {!isReadyToStart && (
           <p className="mt-2 text-sm text-destructive">Carga ambos archivos y selecciona al menos una Hard Key para continuar.</p>
+        )}
+        {isReadyToStart && showPreview && !showSoftKeySteps && (
+          <p className="mt-2 text-sm text-muted-foreground">Selecciona una acción en el Paso 5 para continuar.</p>
         )}
       </div>
     </div>

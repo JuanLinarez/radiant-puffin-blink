@@ -264,7 +264,7 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
     <Card className="shadow-xl rounded-xl border-none">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-lg font-medium text-primary">
-          <Settings className="w-5 h-5" /> 6. Strictness / Nivel de Tolerancia
+          <Settings className="w-5 h-5" /> 7. Strictness / Nivel de Tolerancia
         </CardTitle>
         <CardDescription>
           Define la estrictez con la que se compararán los valores, basado en las Soft Keys seleccionadas.
