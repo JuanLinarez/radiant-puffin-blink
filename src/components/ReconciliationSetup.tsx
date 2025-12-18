@@ -12,6 +12,7 @@ import StrictnessControls from "./StrictnessControls";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import ConfigurationSummary from "./ConfigurationSummary";
+import HardKeyDecisionResults from "./HardKeyDecisionResults"; // Importamos HardKeyDecisionResults
 
 type StrictnessMode = 'Conservador' | 'Balanceado' | 'Flexible';
 
@@ -178,27 +179,38 @@ const ReconciliationSetup: React.FC = () => {
   };
 
   const handleStartReconciliation = () => {
-    // We only check for Hard Keys selection for UI flow purposes
     if (config.hardKeys.length === 0) {
       return;
     }
     
-    // Navigate to results page, passing the full configuration state
-    navigate('/results', { state: { config } });
-    showSuccess("Configuración enviada. Calculando resultados preliminares...");
+    if (!showSoftKeySteps) {
+      // Step 1: Hard Keys selected, move to Soft Keys setup
+      setShowSoftKeySteps(true);
+      showSuccess("Hard Keys configuradas. Continúa con Soft Keys.");
+    } else {
+      // Step 2: Soft Keys and Strictness configured, run final reconciliation
+      // Navigate to results page, passing the full configuration state
+      navigate('/results', { state: { config } });
+      showSuccess("Configuración final enviada. Calculando resultados...");
+    }
   };
 
   // The button is ready if at least one Hard Key is selected
   const isReadyToStart = config.hardKeys.length > 0;
   
+  // Determine button text
+  const buttonText = showSoftKeySteps 
+    ? "Ejecutar Conciliación Final" 
+    : (isReadyToStart ? "Continuar a Soft Keys" : "Iniciar Reconciliación");
+
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-semibold text-foreground mb-4">
         {showSoftKeySteps ? "Configuración de Soft Keys y Tolerancia" : "Configuración de Reconciliación"}
       </h2>
 
-      {/* Configuration Summary (Visible when Soft Key steps are active) */}
-      {showSoftKeySteps && (
+      {/* Configuration Summary (Visible when Hard Keys are selected, and Soft Key steps are NOT active) */}
+      {isReadyToStart && !showSoftKeySteps && (
         <ConfigurationSummary config={config} />
       )}
 
@@ -324,22 +336,22 @@ const ReconciliationSetup: React.FC = () => {
       
       {/* 6. Soft Keys (Optional) - Always visible if Soft Key steps are active */}
       {showSoftKeySteps && (
-        <SoftKeySelector
-          availableColumns={CONCEPTUAL_COLUMNS}
-          selectedKeys={config.softKeys}
-          onKeyChange={handleSoftKeyChange}
-        />
-      )}
+        <>
+          <SoftKeySelector
+            availableColumns={CONCEPTUAL_COLUMNS}
+            selectedKeys={config.softKeys}
+            onKeyChange={handleSoftKeyChange}
+          />
 
-      {/* 7. Strictness / Nivel de Tolerancia - Always visible if Soft Key steps are active */}
-      {showSoftKeySteps && (
-        <StrictnessControls
-          softKeys={config.softKeys}
-          currentMode={config.strictnessMode}
-          onModeChange={handleStrictnessModeChange}
-          toleranceSettings={config.toleranceSettings}
-          onToleranceChange={handleToleranceSettingChange}
-        />
+          {/* 7. Strictness / Nivel de Tolerancia - Always visible if Soft Key steps are active */}
+          <StrictnessControls
+            softKeys={config.softKeys}
+            currentMode={config.strictnessMode}
+            onModeChange={handleStrictnessModeChange}
+            toleranceSettings={config.toleranceSettings}
+            onToleranceChange={handleToleranceSettingChange}
+          />
+        </>
       )}
 
       {/* Start Button */}
@@ -350,7 +362,7 @@ const ReconciliationSetup: React.FC = () => {
           disabled={!isReadyToStart}
           className="w-full md:w-auto"
         >
-          {showSoftKeySteps ? "Ejecutar Conciliación Final" : "Iniciar Reconciliación"}
+          {buttonText}
         </Button>
         {!isReadyToStart && (
           <p className="mt-2 text-sm text-destructive">Selecciona al menos una Hard Key para continuar.</p>
