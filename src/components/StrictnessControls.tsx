@@ -201,6 +201,64 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
   // Helper to check if we should show tolerance controls (Amount/Date/Fuzzy)
   const showToleranceControls = currentMode !== 'Exacto' && (hasAmountOrDate || hasText);
 
+  // Collect tolerance controls into an array for easier grid layout
+  const toleranceControls = [];
+  if (softKeys.includes('Amount')) {
+    toleranceControls.push(
+      <div key="amount" className="space-y-2">
+        <div className="flex justify-between items-center">
+          <Label>Tolerancia de Monto (%)</Label>
+          <span className="text-sm font-medium">{toleranceSettings.amountTolerancePercent}%</span>
+        </div>
+        <Slider
+          value={[toleranceSettings.amountTolerancePercent]}
+          max={5}
+          step={0.1}
+          onValueChange={(v) => onToleranceChange('amountTolerancePercent', v[0])}
+          className="w-full"
+        />
+        <p className="text-xs text-muted-foreground">Define los límites de variación aceptables para los montos.</p>
+      </div>
+    );
+  }
+  if (softKeys.includes('Date')) {
+    toleranceControls.push(
+      <div key="date" className="space-y-2">
+        <div className="flex justify-between items-center">
+          <Label>Tolerancia de Fecha (Días)</Label>
+          <span className="text-sm font-medium">{toleranceSettings.dateToleranceDays} días</span>
+        </div>
+        <Slider
+          value={[toleranceSettings.dateToleranceDays]}
+          max={30}
+          step={1}
+          onValueChange={(v) => onToleranceChange('dateToleranceDays', v[0])}
+          className="w-full"
+        />
+        <p className="text-xs text-muted-foreground">Define los límites de variación aceptables para las fechas.</p>
+      </div>
+    );
+  }
+  if (currentMode === 'Flexible' && hasText) {
+    toleranceControls.push(
+      <div key="text" className="space-y-2">
+        <div className="flex justify-between items-center">
+          <Label>Umbral de Similitud Textual (Fuzzy %)</Label>
+          <span className="text-sm font-medium">{toleranceSettings.textFuzzyThreshold}%</span>
+        </div>
+        <Slider
+          value={[toleranceSettings.textFuzzyThreshold]}
+          max={100}
+          step={5}
+          onValueChange={(v) => onToleranceChange('textFuzzyThreshold', v[0])}
+          className="w-full"
+        />
+        <p className="text-xs text-muted-foreground">Define el puntaje mínimo de similitud para campos de texto.</p>
+      </div>
+    );
+  }
+
+
   return (
     <Card className="shadow-xl rounded-xl border-none">
       <CardHeader>
@@ -267,55 +325,11 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
         {showToleranceControls && (
           <div className="space-y-4 border-b pb-4">
             <h4 className="font-semibold text-md text-primary">Controles de Tolerancia</h4>
-            <p className="text-sm text-muted-foreground">Define los límites de variación aceptables para los campos.</p>
+            <p className="text-sm text-muted-foreground mb-4">Define los límites de variación aceptables para los campos.</p>
 
-            {softKeys.includes('Amount') && (
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <Label>Tolerancia de Monto (%)</Label>
-                  <span className="text-sm font-medium">{toleranceSettings.amountTolerancePercent}%</span>
-                </div>
-                <Slider
-                  value={[toleranceSettings.amountTolerancePercent]}
-                  max={5}
-                  step={0.1}
-                  onValueChange={(v) => onToleranceChange('amountTolerancePercent', v[0])}
-                  className="w-full"
-                />
-              </div>
-            )}
-            
-            {softKeys.includes('Date') && (
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <Label>Tolerancia de Fecha (Días)</Label>
-                  <span className="text-sm font-medium">{toleranceSettings.dateToleranceDays} días</span>
-                </div>
-                <Slider
-                  value={[toleranceSettings.dateToleranceDays]}
-                  max={30}
-                  step={1}
-                  onValueChange={(v) => onToleranceChange('dateToleranceDays', v[0])}
-                  className="w-full"
-                />
-              </div>
-            )}
-
-            {currentMode === 'Flexible' && hasText && (
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <Label>Umbral de Similitud Textual (Fuzzy %)</Label>
-                  <span className="text-sm font-medium">{toleranceSettings.textFuzzyThreshold}%</span>
-                </div>
-                <Slider
-                  value={[toleranceSettings.textFuzzyThreshold]}
-                  max={100}
-                  step={5}
-                  onValueChange={(v) => onToleranceChange('textFuzzyThreshold', v[0])}
-                  className="w-full"
-                />
-              </div>
-            )}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {toleranceControls}
+            </div>
           </div>
         )}
 
@@ -348,57 +362,59 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
         {(currentMode === 'Balanceado' || currentMode === 'Flexible') && (
           <div className="space-y-4">
             <h4 className="font-semibold text-md text-primary">Umbrales de Clasificación de Match</h4>
-            <p className="text-sm text-muted-foreground">Define los puntajes mínimos requeridos para clasificar una coincidencia.</p>
+            <p className="text-sm text-muted-foreground mb-4">Define los puntajes mínimos requeridos para clasificar una coincidencia.</p>
 
-            {/* Auto Match Threshold */}
-            <div className="space-y-2">
-              <div className="flex justify-between items-center">
-                <Label>Match Automático (Score %)</Label>
-                <span className="text-sm font-medium">{toleranceSettings.autoMatchThreshold}%</span>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Auto Match Threshold */}
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <Label>Match Automático (Score %)</Label>
+                  <span className="text-sm font-medium">{toleranceSettings.autoMatchThreshold}%</span>
+                </div>
+                <Slider
+                  value={[toleranceSettings.autoMatchThreshold]}
+                  max={100}
+                  min={0} // Static min for visual proportionality
+                  step={1}
+                  onValueChange={(v) => handleAutoMatchChange(v[0])}
+                  className="w-full"
+                />
+                <p className="text-xs text-muted-foreground">Coincidencias con este puntaje o superior se marcan automáticamente como Match.</p>
               </div>
-              <Slider
-                value={[toleranceSettings.autoMatchThreshold]}
-                max={100}
-                min={0} // Static min for visual proportionality
-                step={1}
-                onValueChange={(v) => handleAutoMatchChange(v[0])}
-                className="w-full"
-              />
-              <p className="text-xs text-muted-foreground">Coincidencias con este puntaje o superior se marcan automáticamente como Match.</p>
-            </div>
 
-            {/* Suggested Match Threshold */}
-            <div className="space-y-2">
-              <div className="flex justify-between items-center">
-                <Label>Match Sugerido (Score %)</Label>
-                <span className="text-sm font-medium">{toleranceSettings.suggestedMatchThreshold}%</span>
+              {/* Suggested Match Threshold */}
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <Label>Match Sugerido (Score %)</Label>
+                  <span className="text-sm font-medium">{toleranceSettings.suggestedMatchThreshold}%</span>
+                </div>
+                <Slider
+                  value={[toleranceSettings.suggestedMatchThreshold]}
+                  max={100} // Static max for visual proportionality
+                  min={0} // Static min for visual proportionality
+                  step={1}
+                  onValueChange={(v) => handleSuggestedMatchChange(v[0])}
+                  className="w-full"
+                />
+                <p className="text-xs text-muted-foreground">Coincidencias entre este puntaje y el Match Automático se marcan como Sugeridas.</p>
               </div>
-              <Slider
-                value={[toleranceSettings.suggestedMatchThreshold]}
-                max={100} // Static max for visual proportionality
-                min={0} // Static min for visual proportionality
-                step={1}
-                onValueChange={(v) => handleSuggestedMatchChange(v[0])}
-                className="w-full"
-              />
-              <p className="text-xs text-muted-foreground">Coincidencias entre este puntaje y el Match Automático se marcan como Sugeridas.</p>
-            </div>
-            
-            {/* Review Threshold */}
-            <div className="space-y-2">
-              <div className="flex justify-between items-center">
-                <Label>Para Revisar (Score %)</Label>
-                <span className="text-sm font-medium">{toleranceSettings.reviewThreshold}%</span>
+              
+              {/* Review Threshold */}
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <Label>Para Revisar (Score %)</Label>
+                  <span className="text-sm font-medium">{toleranceSettings.reviewThreshold}%</span>
+                </div>
+                <Slider
+                  value={[toleranceSettings.reviewThreshold]}
+                  max={100} // Static max for visual proportionality
+                  min={0} // Static min for visual proportionality
+                  step={1}
+                  onValueChange={(v) => handleReviewThresholdChange(v[0])}
+                  className="w-full"
+                />
+                <p className="text-xs text-muted-foreground">Coincidencias entre este puntaje y el Match Sugerido se marcan como 'Para Revisar'. Por debajo de este puntaje, se consideran 'No Match'.</p>
               </div>
-              <Slider
-                value={[toleranceSettings.reviewThreshold]}
-                max={100} // Static max for visual proportionality
-                min={0} // Static min for visual proportionality
-                step={1}
-                onValueChange={(v) => handleReviewThresholdChange(v[0])}
-                className="w-full"
-              />
-              <p className="text-xs text-muted-foreground">Coincidencias entre este puntaje y el Match Sugerido se marcan como 'Para Revisar'. Por debajo de este puntaje, se consideran 'No Match'.</p>
             </div>
           </div>
         )}
