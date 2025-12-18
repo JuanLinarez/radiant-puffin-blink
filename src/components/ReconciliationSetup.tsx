@@ -17,8 +17,9 @@ interface ToleranceSettings {
   dateToleranceDays: number;
   textFuzzyThreshold: number;
   weighting: Record<string, number>;
-  autoMatchThreshold: number; // New: Score required for automatic match
-  suggestedMatchThreshold: number; // New: Score required for suggested match
+  autoMatchThreshold: number; // Score required for automatic match
+  suggestedMatchThreshold: number; // Score required for suggested match
+  reviewThreshold: number; // NEW: Score required for 'Pending Review' classification
 }
 
 interface ReconciliationConfig {
@@ -69,6 +70,7 @@ const ReconciliationSetup: React.FC = () => {
       weighting: { Amount: 33, Date: 33, Text: 34 }, 
       autoMatchThreshold: 95,
       suggestedMatchThreshold: 70,
+      reviewThreshold: 40, // Default value for the new threshold
     },
   });
 

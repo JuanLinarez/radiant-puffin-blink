@@ -38,6 +38,7 @@ interface ToleranceSettings {
   weighting: Record<string, number>;
   autoMatchThreshold: number;
   suggestedMatchThreshold: number;
+  reviewThreshold: number; // NEW
 }
 
 interface StrictnessControlsProps {
@@ -311,12 +312,29 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
               <Slider
                 value={[toleranceSettings.suggestedMatchThreshold]}
                 max={toleranceSettings.autoMatchThreshold - 1} // Must be lower than auto
-                min={0}
+                min={toleranceSettings.reviewThreshold + 1} // Must be higher than review
                 step={1}
                 onValueChange={(v) => onToleranceChange('suggestedMatchThreshold', v[0])}
                 className="w-full"
               />
               <p className="text-xs text-muted-foreground">Coincidencias entre este puntaje y el Match Automático se marcan como Sugeridas.</p>
+            </div>
+            
+            {/* Review Threshold (NEW) */}
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <Label>Para Revisar (Score %)</Label>
+                <span className="text-sm font-medium">{toleranceSettings.reviewThreshold}%</span>
+              </div>
+              <Slider
+                value={[toleranceSettings.reviewThreshold]}
+                max={toleranceSettings.suggestedMatchThreshold - 1} // Must be lower than suggested
+                min={0}
+                step={1}
+                onValueChange={(v) => onToleranceChange('reviewThreshold', v[0])}
+                className="w-full"
+              />
+              <p className="text-xs text-muted-foreground">Coincidencias entre este puntaje y el Match Sugerido se marcan como 'Para Revisar'. Por debajo de este puntaje, se consideran 'No Match'.</p>
             </div>
           </div>
         )}
