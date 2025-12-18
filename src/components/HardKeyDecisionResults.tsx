@@ -4,13 +4,14 @@ import { Button } from "@/components/ui/button";
 import { CheckCheck, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
+import { ReconciliationConfig } from './ReconciliationSetup'; // Importamos el tipo
 
 interface HardKeyDecisionResultsProps {
-  hardKeys: string[];
+  config: ReconciliationConfig; // Ahora recibimos la configuración completa
   simulatedMatchPercent: number;
 }
 
-const HardKeyDecisionResults: React.FC<HardKeyDecisionResultsProps> = ({ hardKeys, simulatedMatchPercent }) => {
+const HardKeyDecisionResults: React.FC<HardKeyDecisionResultsProps> = ({ config, simulatedMatchPercent }) => {
   const navigate = useNavigate();
   // Ensure percentage is between 0 and 100
   const safeMatchPercent = Math.max(0, Math.min(100, simulatedMatchPercent));
@@ -18,11 +19,11 @@ const HardKeyDecisionResults: React.FC<HardKeyDecisionResultsProps> = ({ hardKey
 
   const handleAction = (action: 'continue_soft_keys' | 'review_hard_keys') => {
     if (action === 'continue_soft_keys') {
-      // Navigate back to the index page, passing state to immediately show Soft Key steps
-      navigate('/', { state: { continueSoftKeys: true } });
+      // Pasamos la configuración existente Y el flag para mostrar Soft Keys
+      navigate('/', { state: { config, continueSoftKeys: true } });
     } else {
-      // Navigate back to the index page to review hard keys (default state)
-      navigate('/');
+      // Pasamos la configuración existente para revisar Hard Keys
+      navigate('/', { state: { config } });
     }
   };
 

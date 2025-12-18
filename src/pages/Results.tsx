@@ -20,7 +20,7 @@ const Results: React.FC = () => {
       <AppLayout>
         <div className="p-6 bg-card rounded-xl shadow-lg max-w-4xl mx-auto">
           <HardKeyDecisionResults 
-            hardKeys={config.hardKeys}
+            config={config} // Pasamos la configuración completa
             simulatedMatchPercent={simulatedMatchPercent}
           />
         </div>

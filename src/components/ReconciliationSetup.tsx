@@ -47,38 +47,42 @@ export interface ReconciliationConfig {
 // Conceptual list of all columns detected from files A and B
 const CONCEPTUAL_COLUMNS = ['Vendor Code', 'Currency', 'Company Code', 'Amount', 'Date', 'Vendor Name', 'Description'];
 
+const DEFAULT_CONFIG: ReconciliationConfig = {
+  file1: null,
+  file2: null,
+  
+  connectionHubSpoke: true,
+  connectionChain: false,
+  
+  relationOneToOne: true,
+  relationOneToMany: false,
+  
+  hardKeys: [], // Default hard keys: empty
+  softKeys: [],
+  
+  strictnessMode: 'Exacto',
+  toleranceSettings: {
+    amountTolerancePercent: 0.5,
+    dateToleranceDays: 7,
+    textFuzzyThreshold: 80,
+    weighting: { Amount: 33, Date: 33, Text: 34 }, 
+    autoMatchThreshold: 95,
+    suggestedMatchThreshold: 70,
+    reviewThreshold: 40,
+  },
+};
+
 
 const ReconciliationSetup: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Check navigation state for immediate Soft Key display
+  const incomingConfig = location.state?.config as ReconciliationConfig | undefined;
   const initialShowSoftKeySteps = location.state?.continueSoftKeys || false;
 
-  const [config, setConfig] = useState<ReconciliationConfig>({
-    file1: null,
-    file2: null,
-    
-    connectionHubSpoke: true,
-    connectionChain: false,
-    
-    relationOneToOne: true,
-    relationOneToMany: false,
-    
-    hardKeys: [], // Default hard keys: empty
-    softKeys: [],
-    
-    strictnessMode: 'Exacto',
-    toleranceSettings: {
-      amountTolerancePercent: 0.5,
-      dateToleranceDays: 7,
-      textFuzzyThreshold: 80,
-      weighting: { Amount: 33, Date: 33, Text: 34 }, 
-      autoMatchThreshold: 95,
-      suggestedMatchThreshold: 70,
-      reviewThreshold: 40,
-    },
-  });
+  const [config, setConfig] = useState<ReconciliationConfig>(
+    incomingConfig || DEFAULT_CONFIG
+  );
   
   // State to control visibility of Soft Keys and Strictness steps
   const [showSoftKeySteps, setShowSoftKeySteps] = useState(initialShowSoftKeySteps);
@@ -201,6 +205,7 @@ const ReconciliationSetup: React.FC = () => {
               accept=".xlsx, .xls" 
               onChange={(e) => handleFileChange(e, 'file1')} 
             />
+            {/* Display file name if loaded, even if restored from state */}
             {config.file1 && <p className="text-sm text-muted-foreground truncate">Cargado: {config.file1.name}</p>}
           </div>
           <div className="space-y-2">
@@ -211,6 +216,7 @@ const ReconciliationSetup: React.FC = () => {
               accept=".xlsx, .xls" 
               onChange={(e) => handleFileChange(e, 'file2')} 
             />
+            {/* Display file name if loaded, even if restored from state */}
             {config.file2 && <p className="text-sm text-muted-foreground truncate">Cargado: {config.file2.name}</p>}
           </div>
         </CardContent>
