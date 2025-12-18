@@ -13,7 +13,7 @@ interface HardKeySelectorProps {
 const HardKeySelector: React.FC<HardKeySelectorProps> = ({ availableColumns, selectedKeys, onKeyChange }) => {
   // Conceptual filter for hard key candidates
   const hardKeyCandidates = availableColumns.filter(col => 
-    ['Vendor Code', 'Currency', 'Company'].includes(col)
+    ['Vendor Code', 'Currency', 'Company Code'].includes(col)
   );
 
   return (

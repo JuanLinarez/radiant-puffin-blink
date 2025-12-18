@@ -44,7 +44,7 @@ interface ReconciliationConfig {
 }
 
 // Conceptual list of all columns detected from files A and B
-const CONCEPTUAL_COLUMNS = ['Vendor Code', 'Currency', 'Company', 'Amount', 'Date', 'Vendor Name', 'Description'];
+const CONCEPTUAL_COLUMNS = ['Vendor Code', 'Currency', 'Company Code', 'Amount', 'Date', 'Vendor Name', 'Description'];
 
 
 const ReconciliationSetup: React.FC = () => {
@@ -58,7 +58,7 @@ const ReconciliationSetup: React.FC = () => {
     relationOneToOne: true,
     relationOneToMany: false,
     
-    hardKeys: ['Vendor Code', 'Currency', 'Company'], // Default hard keys
+    hardKeys: ['Vendor Code', 'Currency', 'Company Code'], // Default hard keys
     softKeys: [],
     
     strictnessMode: 'Exacto',
