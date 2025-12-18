@@ -184,9 +184,10 @@ const ReconciliationSetup: React.FC = () => {
     }
     
     if (!showSoftKeySteps) {
-      // Step 1: Hard Keys selected, move to Soft Keys setup
-      setShowSoftKeySteps(true);
-      showSuccess("Hard Keys configuradas. Continúa con Soft Keys.");
+      // Step 1: Hard Keys selected, run preliminary reconciliation
+      // Navigate to results page, passing the current configuration state
+      navigate('/results', { state: { config } });
+      showSuccess("Hard Keys configuradas. Calculando resultados preliminares...");
     } else {
       // Step 2: Soft Keys and Strictness configured, run final reconciliation
       // Navigate to results page, passing the full configuration state
@@ -201,7 +202,7 @@ const ReconciliationSetup: React.FC = () => {
   // Determine button text
   const buttonText = showSoftKeySteps 
     ? "Ejecutar Conciliación Final" 
-    : (isReadyToStart ? "Continuar a Soft Keys" : "Iniciar Reconciliación");
+    : "Iniciar Reconciliación";
 
   return (
     <div className="space-y-6">
