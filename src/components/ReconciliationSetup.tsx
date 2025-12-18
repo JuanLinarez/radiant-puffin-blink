@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,7 +9,7 @@ import { showSuccess } from "@/utils/toast";
 import HardKeySelector from "./HardKeySelector";
 import SoftKeySelector from "./SoftKeySelector";
 import StrictnessControls from "./StrictnessControls";
-import HardKeyResultsPreview from "./HardKeyResultsPreview"; // Import new component
+import { useNavigate, useLocation } from "react-router-dom";
 
 type StrictnessMode = 'Exacto' | 'Balanceado' | 'Flexible';
 
@@ -23,7 +23,7 @@ interface ToleranceSettings {
   reviewThreshold: number; // NEW: Score required for 'Pending Review' classification
 }
 
-interface ReconciliationConfig {
+export interface ReconciliationConfig {
   file1: File | null;
   file2: File | null;
   
@@ -49,6 +49,12 @@ const CONCEPTUAL_COLUMNS = ['Vendor Code', 'Currency', 'Company Code', 'Amount',
 
 
 const ReconciliationSetup: React.FC = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  
+  // Check navigation state for immediate Soft Key display
+  const initialShowSoftKeySteps = location.state?.continueSoftKeys || false;
+
   const [config, setConfig] = useState<ReconciliationConfig>({
     file1: null,
     file2: null,
@@ -59,7 +65,7 @@ const ReconciliationSetup: React.FC = () => {
     relationOneToOne: true,
     relationOneToMany: false,
     
-    hardKeys: ['Vendor Code', 'Currency', 'Company Code'], // Default hard keys
+    hardKeys: [], // Default hard keys: empty
     softKeys: [],
     
     strictnessMode: 'Exacto',
@@ -67,16 +73,15 @@ const ReconciliationSetup: React.FC = () => {
       amountTolerancePercent: 0.5,
       dateToleranceDays: 7,
       textFuzzyThreshold: 80,
-      // Initial weighting set up for potential 3-way split (Amount, Date, Text)
       weighting: { Amount: 33, Date: 33, Text: 34 }, 
       autoMatchThreshold: 95,
       suggestedMatchThreshold: 70,
-      reviewThreshold: 40, // Default value for the new threshold
+      reviewThreshold: 40,
     },
   });
   
-  // New state to control visibility of Soft Keys and Strictness steps
-  const [showSoftKeySteps, setShowSoftKeySteps] = useState(false);
+  // State to control visibility of Soft Keys and Strictness steps
+  const [showSoftKeySteps, setShowSoftKeySteps] = useState(initialShowSoftKeySteps);
 
   // Handlers for existing sections
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, fileKey: keyof Pick<ReconciliationConfig, 'file1' | 'file2'>) => {
@@ -144,16 +149,6 @@ const ReconciliationSetup: React.FC = () => {
     });
   };
 
-  // Handler for the new HardKeyResultsPreview component
-  const handlePreviewAction = (action: 'continue_soft_keys' | 'review_hard_keys') => {
-    if (action === 'continue_soft_keys') {
-      setShowSoftKeySteps(true);
-    } else {
-      // If they choose to review hard keys, we hide soft key steps
-      setShowSoftKeySteps(false);
-    }
-  };
-
   // Handlers for Strictness Controls section
   const handleStrictnessModeChange = (mode: StrictnessMode, checked: boolean) => {
     if (checked) {
@@ -176,15 +171,13 @@ const ReconciliationSetup: React.FC = () => {
       return;
     }
     
-    console.log("Starting reconciliation with config:", config);
-    showSuccess("Configuración guardada. Iniciando proceso de reconciliación (simulado).");
+    // Navigate to results page, passing the full configuration state
+    navigate('/results', { state: { config } });
+    showSuccess("Configuración enviada. Calculando resultados preliminares...");
   };
 
   const isReadyToStart = config.file1 && config.file2 && config.hardKeys.length > 0;
   
-  // Determine if the preview step should be shown
-  const showPreview = config.file1 && config.file2 && config.hardKeys.length > 0;
-
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-semibold text-foreground mb-4">Configuración de Reconciliación</h2>
@@ -302,14 +295,6 @@ const ReconciliationSetup: React.FC = () => {
         onKeyChange={handleHardKeyChange}
       />
       
-      {/* 5. Hard Key Results Preview (New Step) */}
-      {showPreview && (
-        <HardKeyResultsPreview 
-          hardKeys={config.hardKeys}
-          onAction={handlePreviewAction}
-        />
-      )}
-
       {/* 6. Soft Keys (Optional) - Only visible if user chooses to continue */}
       {showSoftKeySteps && (
         <SoftKeySelector
@@ -335,16 +320,13 @@ const ReconciliationSetup: React.FC = () => {
         <Button 
           size="lg" 
           onClick={handleStartReconciliation} 
-          disabled={!isReadyToStart || (showPreview && !showSoftKeySteps)}
+          disabled={!isReadyToStart}
           className="w-full md:w-auto"
         >
           Iniciar Reconciliación
         </Button>
         {!isReadyToStart && (
           <p className="mt-2 text-sm text-destructive">Carga ambos archivos y selecciona al menos una Hard Key para continuar.</p>
-        )}
-        {isReadyToStart && showPreview && !showSoftKeySteps && (
-          <p className="mt-2 text-sm text-muted-foreground">Selecciona una acción en el Paso 5 para continuar.</p>
         )}
       </div>
     </div>
