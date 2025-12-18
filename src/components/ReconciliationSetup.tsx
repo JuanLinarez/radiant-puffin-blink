@@ -176,7 +176,7 @@ const ReconciliationSetup: React.FC = () => {
             Selecciona los dos archivos que deseas conciliar.
           </CardDescription>
         </CardHeader>
-        <CardContent className="grid md:grid-cols-2 gap-6">
+        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
             <Label htmlFor="file1">Archivo de Origen (A)</Label>
             <Input 
