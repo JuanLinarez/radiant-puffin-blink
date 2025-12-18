@@ -11,6 +11,7 @@ import SoftKeySelector from "./SoftKeySelector";
 import StrictnessControls from "./StrictnessControls";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
+import ConfigurationSummary from "./ConfigurationSummary";
 
 type StrictnessMode = 'Exacto' | 'Balanceado' | 'Flexible';
 
@@ -191,25 +192,9 @@ const ReconciliationSetup: React.FC = () => {
         {showSoftKeySteps ? "Configuración de Soft Keys y Tolerancia" : "Configuración de Reconciliación"}
       </h2>
 
-      {/* Hard Keys Reference (Always visible if Soft Key steps are active) */}
+      {/* Configuration Summary (Visible when Soft Key steps are active) */}
       {showSoftKeySteps && (
-        <Card className="shadow-xl rounded-xl border-l-4 border-primary">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg font-medium text-primary">
-              <Key className="w-5 h-5" /> Hard Keys Seleccionadas (Referencia)
-            </CardTitle>
-            <CardDescription>
-              Estos campos se usan para la coincidencia exacta y no pueden ser modificados en esta etapa.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-wrap gap-2">
-            {config.hardKeys.map(key => (
-              <Badge key={key} variant="default" className="bg-primary hover:bg-primary/90">
-                {key}
-              </Badge>
-            ))}
-          </CardContent>
-        </Card>
+        <ConfigurationSummary config={config} />
       )}
 
       {/* Initial Setup Steps (Hidden if Soft Key steps are active) */}
