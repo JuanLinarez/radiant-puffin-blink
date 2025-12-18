@@ -1,8 +1,10 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle2, XCircle, TrendingUp } from 'lucide-react';
+import { CheckCircle2, XCircle, TrendingUp, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ReconciliationConfig } from './ReconciliationSetup';
+import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
 
 interface FinalReconciliationResultsProps {
   config: ReconciliationConfig;
@@ -10,6 +12,8 @@ interface FinalReconciliationResultsProps {
 }
 
 const FinalReconciliationResults: React.FC<FinalReconciliationResultsProps> = ({ config, initialMatchPercent }) => {
+  const navigate = useNavigate();
+  
   // Simulación de mejora de match gracias a Soft Keys y Strictness Mode
   let softKeyMatchBoost = 0;
   
@@ -33,6 +37,11 @@ const FinalReconciliationResults: React.FC<FinalReconciliationResultsProps> = ({
   const finalMatchPercent = Math.min(100, initialMatchPercent + softKeyMatchBoost);
   const softKeyContribution = finalMatchPercent - initialMatchPercent;
   const unmatchedPercent = 100 - finalMatchPercent;
+
+  const handleReviewConfig = () => {
+    // Navigate back to the setup page, passing the current config and forcing soft key steps visibility
+    navigate('/', { state: { config, continueSoftKeys: true } });
+  };
 
   return (
     <Card className="shadow-xl rounded-xl border-none">
@@ -88,11 +97,20 @@ const FinalReconciliationResults: React.FC<FinalReconciliationResultsProps> = ({
         </div>
         
         {/* Next Steps */}
-        <div className="pt-4 border-t text-center">
+        <div className="pt-4 border-t text-center space-y-4">
           <p className="text-md font-medium mb-3">Próximos Pasos:</p>
           <p className="text-sm text-muted-foreground">
             Ahora puedes descargar el reporte de resultados o proceder a la revisión manual de los registros 'Sugeridos' y 'Para Revisar'.
           </p>
+          
+          <Button 
+            variant="outline"
+            onClick={handleReviewConfig}
+            className="w-full md:w-auto"
+          >
+            <Settings className="w-4 h-4 mr-2" />
+            Revisar Configuración de Soft Keys
+          </Button>
         </div>
       </CardContent>
     </Card>
