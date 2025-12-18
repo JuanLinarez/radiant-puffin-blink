@@ -1,10 +1,11 @@
 import React, { useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Settings, CheckCircle, Scale, SlidersHorizontal } from 'lucide-react';
+import { Settings, CheckCircle, Scale, SlidersHorizontal, AlertTriangle } from 'lucide-react';
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { cn } from '@/lib/utils';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"; // Import Alert components
 
 // --- Types for Strictness Controls ---
 type StrictnessMode = 'Exacto' | 'Balanceado' | 'Flexible';
@@ -260,6 +261,17 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
         {showScoringControls && (
           <div className="space-y-4 border-b pb-4">
             <h4 className="font-semibold text-md text-primary">Pesos de Scoring (Total: {totalWeight}%)</h4>
+            
+            {totalWeight !== 100 && (
+              <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>Advertencia: Peso Incompleto</AlertTitle>
+                <AlertDescription>
+                  La suma de los pesos de Soft Keys debe ser exactamente 100%. Actualmente suma {totalWeight}%.
+                </AlertDescription>
+              </Alert>
+            )}
+
             <p className="text-sm text-muted-foreground mb-2">
               Define la importancia relativa de cada Soft Key en el puntaje de coincidencia. 
               Peso restante: <span className={cn("font-semibold", remainingWeight < 0 ? "text-destructive" : "text-primary")}>{remainingWeight}%</span>
