@@ -210,11 +210,11 @@ const ReconciliationSetup: React.FC = () => {
             Define cómo se espera que se relacionen los registros entre el Archivo A y el Archivo B.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between p-2 rounded-md hover:bg-accent transition-colors">
-            <Label htmlFor="relation-1-1" className="flex flex-col space-y-1 cursor-pointer">
+        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="flex items-center justify-between p-2 rounded-md hover:bg-accent transition-colors border">
+            <Label htmlFor="relation-1-1" className="flex flex-col space-y-1 cursor-pointer pr-2">
               <span className="font-medium">1:1 (Uno a Uno)</span>
-              <p className="text-sm text-muted-foreground">Cada registro en A coincide con exactamente un registro en B.</p>
+              <p className="text-xs text-muted-foreground">Cada registro en A coincide con exactamente un registro en B.</p>
             </Label>
             <Switch
               id="relation-1-1"
@@ -222,10 +222,10 @@ const ReconciliationSetup: React.FC = () => {
               onCheckedChange={(checked) => handleRelationSwitchChange('relationOneToOne', checked)}
             />
           </div>
-          <div className="flex items-center justify-between p-2 rounded-md hover:bg-accent transition-colors">
-            <Label htmlFor="relation-1-n" className="flex flex-col space-y-1 cursor-pointer">
+          <div className="flex items-center justify-between p-2 rounded-md hover:bg-accent transition-colors border">
+            <Label htmlFor="relation-1-n" className="flex flex-col space-y-1 cursor-pointer pr-2">
               <span className="font-medium">1:Muchos / Muchos:1</span>
-              <p className="text-sm text-muted-foreground">Permite que un registro en un archivo coincida con múltiples registros en el otro.</p>
+              <p className="text-xs text-muted-foreground">Permite que un registro en un archivo coincida con múltiples registros en el otro.</p>
             </Label>
             <Switch
               id="relation-1-n"
@@ -269,11 +269,11 @@ const ReconciliationSetup: React.FC = () => {
             Define cómo se conectan los archivos entre sí para la conciliación.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between p-2 rounded-md hover:bg-accent transition-colors">
-            <Label htmlFor="connection-hub" className="flex flex-col space-y-1 cursor-pointer">
+        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="flex items-center justify-between p-2 rounded-md hover:bg-accent transition-colors border">
+            <Label htmlFor="connection-hub" className="flex flex-col space-y-1 cursor-pointer pr-2">
               <span className="font-medium">Hub-and-spoke (Maestro)</span>
-              <p className="text-sm text-muted-foreground">Elige un archivo maestro y concilia los demás contra él (recomendado).</p>
+              <p className="text-xs text-muted-foreground">Elige un archivo maestro y concilia los demás contra él (recomendado).</p>
             </Label>
             <Switch
               id="connection-hub"
@@ -281,10 +281,10 @@ const ReconciliationSetup: React.FC = () => {
               onCheckedChange={(checked) => handleConnectionSwitchChange('connectionHubSpoke', checked)}
             />
           </div>
-          <div className="flex items-center justify-between p-2 rounded-md hover:bg-accent transition-colors">
-            <Label htmlFor="connection-chain" className="flex flex-col space-y-1 cursor-pointer">
+          <div className="flex items-center justify-between p-2 rounded-md hover:bg-accent transition-colors border">
+            <Label htmlFor="connection-chain" className="flex flex-col space-y-1 cursor-pointer pr-2">
               <span className="font-medium">Chain / Pipeline</span>
-              <p className="text-sm text-muted-foreground">A ↔ B ↔ C ↔ D, útil cuando cada archivo representa una etapa del proceso.</p>
+              <p className="text-xs text-muted-foreground">A ↔ B ↔ C ↔ D, útil cuando cada archivo representa una etapa del proceso.</p>
             </Label>
             <Switch
               id="connection-chain"

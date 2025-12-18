@@ -214,12 +214,12 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
       <CardContent className="space-y-6">
         
         {/* Mode Selection */}
-        <div className="space-y-4 border-b pb-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 border-b pb-4">
           {/* Exacto Mode */}
-          <div className="flex items-center justify-between p-2 rounded-md hover:bg-accent transition-colors">
-            <Label htmlFor="mode-exacto" className="flex flex-col space-y-1 cursor-pointer">
+          <div className="flex items-center justify-between p-2 rounded-md hover:bg-accent transition-colors border">
+            <Label htmlFor="mode-exacto" className="flex flex-col space-y-1 cursor-pointer pr-2">
               <span className="font-medium flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> Exacto</span>
-              <p className="text-sm text-muted-foreground">Solo se aceptan coincidencias perfectas usando Hard Keys. (Default)</p>
+              <p className="text-xs text-muted-foreground">Solo se aceptan coincidencias perfectas usando Hard Keys. (Default)</p>
             </Label>
             <Switch
               id="mode-exacto"
@@ -230,12 +230,12 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
 
           {/* Balanceado Mode */}
           <div className={cn(
-            "flex items-center justify-between p-2 rounded-md transition-colors",
+            "flex items-center justify-between p-2 rounded-md transition-colors border",
             hasAmountOrDate ? "hover:bg-accent" : "opacity-50 cursor-not-allowed"
           )}>
-            <Label htmlFor="mode-balanceado" className="flex flex-col space-y-1 cursor-pointer">
+            <Label htmlFor="mode-balanceado" className="flex flex-col space-y-1 cursor-pointer pr-2">
               <span className="font-medium flex items-center gap-2"><Scale className="w-4 h-4 text-yellow-500" /> Balanceado</span>
-              <p className="text-sm text-muted-foreground">Permite pequeñas variaciones en montos y fechas. (Requiere Amount o Date en Soft Keys)</p>
+              <p className="text-xs text-muted-foreground">Permite pequeñas variaciones en montos y fechas. (Requiere Amount o Date en Soft Keys)</p>
             </Label>
             <Switch
               id="mode-balanceado"
@@ -247,12 +247,12 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
 
           {/* Flexible Mode */}
           <div className={cn(
-            "flex items-center justify-between p-2 rounded-md transition-colors",
+            "flex items-center justify-between p-2 rounded-md transition-colors border",
             hasText ? "hover:bg-accent" : "opacity-50 cursor-not-allowed"
           )}>
-            <Label htmlFor="mode-flexible" className="flex flex-col space-y-1 cursor-pointer">
+            <Label htmlFor="mode-flexible" className="flex flex-col space-y-1 cursor-pointer pr-2">
               <span className="font-medium flex items-center gap-2"><SlidersHorizontal className="w-4 h-4 text-blue-500" /> Flexible</span>
-              <p className="text-sm text-muted-foreground">Utiliza lógica de coincidencia difusa para campos de texto. (Requiere campos textuales en Soft Keys)</p>
+              <p className="text-xs text-muted-foreground">Utiliza lógica de coincidencia difusa para campos de texto. (Requiere campos textuales en Soft Keys)</p>
             </Label>
             <Switch
               id="mode-flexible"
