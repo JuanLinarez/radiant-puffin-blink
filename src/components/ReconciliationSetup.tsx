@@ -171,7 +171,8 @@ const ReconciliationSetup: React.FC = () => {
   };
 
   const handleStartReconciliation = () => {
-    if (!config.file1 || !config.file2 || config.hardKeys.length === 0) {
+    // We only check for Hard Keys selection for UI flow purposes
+    if (config.hardKeys.length === 0) {
       return;
     }
     
@@ -180,7 +181,8 @@ const ReconciliationSetup: React.FC = () => {
     showSuccess("Configuración enviada. Calculando resultados preliminares...");
   };
 
-  const isReadyToStart = config.file1 && config.file2 && config.hardKeys.length > 0;
+  // The button is ready if at least one Hard Key is selected
+  const isReadyToStart = config.hardKeys.length > 0;
   
   return (
     <div className="space-y-6">
@@ -332,7 +334,7 @@ const ReconciliationSetup: React.FC = () => {
           Iniciar Reconciliación
         </Button>
         {!isReadyToStart && (
-          <p className="mt-2 text-sm text-destructive">Carga ambos archivos y selecciona al menos una Hard Key para continuar.</p>
+          <p className="mt-2 text-sm text-destructive">Selecciona al menos una Hard Key para continuar.</p>
         )}
       </div>
     </div>
