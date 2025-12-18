@@ -13,7 +13,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import ConfigurationSummary from "./ConfigurationSummary";
 
-type StrictnessMode = 'Exacto' | 'Balanceado' | 'Flexible';
+type StrictnessMode = 'Conservador' | 'Balanceado' | 'Flexible';
 
 interface ToleranceSettings {
   amountTolerancePercent: number;
@@ -62,7 +62,7 @@ const DEFAULT_CONFIG: ReconciliationConfig = {
   hardKeys: [], // Default hard keys: empty
   softKeys: [],
   
-  strictnessMode: 'Exacto',
+  strictnessMode: 'Conservador',
   toleranceSettings: {
     amountTolerancePercent: 0.5,
     dateToleranceDays: 7,
@@ -144,11 +144,16 @@ const ReconciliationSetup: React.FC = () => {
       const hasText = newKeys.some(k => ['Vendor Name', 'Description'].includes(k));
 
       if (prev.strictnessMode === 'Balanceado' && !hasAmountOrDate) {
-          newStrictnessMode = 'Exacto';
+          newStrictnessMode = 'Conservador';
       }
-      // If we lose text keys, Flexible mode is no longer possible. Revert to Balanceado if Amount/Date exists, otherwise Exacto.
+      // If we lose text keys, Flexible mode is no longer possible. Revert to Balanceado if Amount/Date exists, otherwise Conservador.
       if (prev.strictnessMode === 'Flexible' && !hasText) {
-          newStrictnessMode = hasAmountOrDate ? 'Balanceado' : 'Exacto';
+          newStrictnessMode = hasAmountOrDate ? 'Balanceado' : 'Conservador';
+      }
+      
+      // If all soft keys are removed, revert to Conservador
+      if (newKeys.length === 0) {
+          newStrictnessMode = 'Conservador';
       }
 
       return { ...prev, softKeys: newKeys, strictnessMode: newStrictnessMode };
