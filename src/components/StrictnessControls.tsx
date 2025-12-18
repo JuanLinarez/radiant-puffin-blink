@@ -1,6 +1,6 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Settings, CheckCircle, Scale, SlidersHorizontal, AlertTriangle } from 'lucide-react';
+import { Settings, CheckCircle, Scale, SlidersHorizontal } from 'lucide-react';
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
@@ -80,6 +80,52 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
     
     return weights;
   }, [softKeys, currentMode, hasText]);
+
+  // --- Normalization Logic (New useEffect) ---
+  useEffect(() => {
+    if (currentMode === 'Exacto' || availableWeights.length === 0) {
+      return;
+    }
+
+    const totalWeight = availableWeights.reduce((sum, key) => sum + (currentWeights[key] || 0), 0);
+    
+    // Check if the current active weights already sum to 100%
+    if (totalWeight === 100) {
+      return;
+    }
+
+    // If not 100%, normalize the weights
+    const numWeights = availableWeights.length;
+    const baseWeight = Math.floor(100 / numWeights);
+    const remainder = 100 % numWeights;
+
+    const newWeighting: Record<string, number> = {};
+    let currentTotal = 0;
+
+    availableWeights.forEach((key, index) => {
+      // Distribute remainder to the first 'remainder' keys
+      const weight = baseWeight + (index < remainder ? 1 : 0);
+      newWeighting[key] = weight;
+      currentTotal += weight;
+    });
+    
+    // Ensure all non-active keys are reset to 0 (or removed, but setting to 0 is safer for state consistency)
+    Object.keys(currentWeights).forEach(key => {
+        if (!availableWeights.includes(key)) {
+            newWeighting[key] = 0;
+        }
+    });
+
+    // Only update if the calculated weights are different from the current state
+    const isDifferent = availableWeights.some(key => newWeighting[key] !== currentWeights[key]);
+
+    if (isDifferent) {
+        onToleranceChange('weighting', newWeighting);
+    }
+
+  // We depend on availableWeights (which changes with softKeys and currentMode) and currentWeights (to check if normalization is needed)
+  }, [availableWeights, currentWeights, currentMode, onToleranceChange]);
+  // -------------------------------------------
 
   // Calculate total weight based ONLY on currently available weights
   const totalWeight = availableWeights.reduce((sum, key) => sum + (currentWeights[key] || 0), 0);
