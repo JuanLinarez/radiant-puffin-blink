@@ -248,7 +248,7 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
   if (softKeys.includes("Date")) {
     toleranceControls.push(
       <div key="date" className="space-y-2">
-        <div className="flex justify-between items-center">
+        <div className="flex justify_between items-center">
           <Label>Tolerancia de Fecha (Días)</Label>
           <span className="text-sm font-medium">
             {toleranceSettings.dateToleranceDays} días
@@ -458,8 +458,9 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
                   className="w-full"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Coincidencias entre este puntaje y el Match Automático se
-                  marcan como Sugeridas.
+                  Coincidencias con este puntaje o superior se marcan
+                  automáticamente como Match. Estos casos aparecerán en el
+                  reporte final.
                 </p>
               </div>
 
@@ -480,9 +481,7 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
                   className="w-full"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Coincidencias entre este puntaje y el Match Sugerido se marcan
-                  como “Para Revisar”. Todo por debajo de este % se considera
-                  “No Match”.
+                  Puntajes por debajo de este valor se consideran No Match.
                 </p>
               </div>
             </div>
