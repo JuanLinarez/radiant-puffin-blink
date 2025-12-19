@@ -203,6 +203,14 @@ const ReconciliationSetup: React.FC = () => {
   const buttonText = showSoftKeySteps 
     ? "Ejecutar Conciliación Final" 
     : "Iniciar Reconciliación";
+    
+  // Determine if the button should be disabled
+  let isButtonDisabled = !isReadyToStart;
+  if (showSoftKeySteps) {
+      // If we are in the final step, the button is only enabled if at least one Soft Key is selected
+      isButtonDisabled = config.softKeys.length === 0;
+  }
+
 
   return (
     <div className="space-y-6">
@@ -210,8 +218,8 @@ const ReconciliationSetup: React.FC = () => {
         {showSoftKeySteps ? "Configuración de Soft Keys y Tolerancia" : "Configuración de Reconciliación"}
       </h2>
 
-      {/* Configuration Summary (Visible when Hard Keys are selected, and Soft Key steps are NOT active) */}
-      {isReadyToStart && !showSoftKeySteps && (
+      {/* Configuration Summary (Visible when Hard Keys are selected, regardless of Soft Key step visibility) */}
+      {isReadyToStart && (
         <ConfigurationSummary config={config} />
       )}
 
@@ -360,13 +368,18 @@ const ReconciliationSetup: React.FC = () => {
         <Button 
           size="lg" 
           onClick={handleStartReconciliation} 
-          disabled={!isReadyToStart}
+          disabled={isButtonDisabled}
           className="w-full md:w-auto"
         >
           {buttonText}
         </Button>
-        {!isReadyToStart && (
-          <p className="mt-2 text-sm text-destructive">Selecciona al menos una Hard Key para continuar.</p>
+        {isButtonDisabled && (
+          <p className="mt-2 text-sm text-destructive">
+            {showSoftKeySteps 
+              ? "Selecciona al menos una Soft Key para ejecutar la conciliación final."
+              : "Selecciona al menos una Hard Key para continuar."
+            }
+          </p>
         )}
       </div>
     </div>
