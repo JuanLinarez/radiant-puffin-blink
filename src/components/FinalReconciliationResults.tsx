@@ -45,25 +45,29 @@ const FinalReconciliationResults: React.FC<FinalReconciliationResultsProps> = ({
   softKeySuccessRate = Math.max(0, Math.min(1, softKeySuccessRate));
 
   // 4. Calculate Soft Match Total (contribution to 100%)
-  const softMatchTotal = unmatchedByHardKeys * softKeySuccessRate;
+  const softMatchTotal = unmatchedByHardKeys * softKeySuccessRate; // Total portion of remanente that found a match
   
-  // 5. Calculate Final Unmatched (remaining records)
+  // 5. Calculate Final Unmatched (remaining records that failed Soft Keys entirely)
   const finalUnmatchedPercent = unmatchedByHardKeys - softMatchTotal;
 
   // 6. Distribute softMatchTotal into categories (using fixed proportions for simulation)
-  // These ratios simulate how the soft matches fall into the defined thresholds
   const softAutoRatio = 0.7;
   const softSuggestedRatio = 0.2;
   const softReviewRatio = 0.1;
 
   const softMatchAuto = softMatchTotal * softAutoRatio;
   const softMatchSuggested = softMatchTotal * softSuggestedRatio;
-  const softMatchReview = softMatchTotal * softReviewRatio;
+  const softMatchReview = softMatchTotal * softReviewRatio; // This portion is now considered 'unmatched' for manual review
 
-  // 7. Final Totals for Summary
-  const finalMatchTotal = hardMatchPercent + softMatchTotal;
-  const softKeyContribution = softMatchTotal; 
+  // 7. Final Match Total (Only Exact, Auto, Suggested)
+  const finalMatchTotal = hardMatchPercent + softMatchAuto + softMatchSuggested;
 
+  // 8. Soft Key Contribution (Only Auto + Suggested)
+  const softKeyContribution = softMatchAuto + softMatchSuggested;
+
+  // 9. Final Unmatched (Original Unmatched + Review Matches)
+  const finalUnmatchedWithReview = finalUnmatchedPercent + softMatchReview;
+  
   // --- Handlers ---
   const handleReviewConfig = () => {
     // Navigate back to the setup page, passing the current config and forcing soft key steps visibility
@@ -82,19 +86,31 @@ const FinalReconciliationResults: React.FC<FinalReconciliationResultsProps> = ({
       </CardHeader>
       <CardContent className="space-y-8">
         
-        {/* Summary Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+        {/* Summary Metrics (4 Cards) */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+          
+          {/* 1. Hard Match Total */}
           <div className="p-4 bg-green-500/20 rounded-lg border border-green-600/50">
-            <p className="text-4xl font-bold text-green-700 dark:text-green-400">{finalMatchTotal.toFixed(1)}%</p>
-            <p className="text-sm font-medium mt-1 text-green-800 dark:text-green-300">Match Total</p>
+            <p className="text-3xl font-bold text-green-700 dark:text-green-400">{hardMatchPercent.toFixed(1)}%</p>
+            <p className="text-xs font-medium mt-1 text-green-800 dark:text-green-300">Match Exacto (Hard Keys)</p>
           </div>
+          
+          {/* 2. Final Match Total (Auto + Sugerido) */}
+          <div className="p-4 bg-primary/20 rounded-lg border border-primary/50">
+            <p className="text-3xl font-bold text-primary dark:text-primary-foreground">{finalMatchTotal.toFixed(1)}%</p>
+            <p className="text-xs font-medium mt-1 text-primary dark:text-primary-foreground">Match Total (Auto + Sugerido)</p>
+          </div>
+          
+          {/* 3. Soft Key Contribution (Auto + Sugerido) - Removed '+' sign */}
           <div className="p-4 bg-blue-500/20 rounded-lg border border-blue-600/50">
-            <p className="text-4xl font-bold text-blue-700 dark:text-blue-400">+{softKeyContribution.toFixed(1)}%</p>
-            <p className="text-sm font-medium mt-1 text-blue-800 dark:text-blue-300">Contribución Soft Keys</p>
+            <p className="text-3xl font-bold text-blue-700 dark:text-blue-400">{softKeyContribution.toFixed(1)}%</p>
+            <p className="text-xs font-medium mt-1 text-blue-800 dark:text-blue-300">Contribución Soft Keys</p>
           </div>
+          
+          {/* 4. Final Unmatched (Including Review) */}
           <div className="p-4 bg-destructive/20 rounded-lg border border-destructive/50">
-            <p className="text-4xl font-bold text-destructive dark:text-red-400">{finalUnmatchedPercent.toFixed(1)}%</p>
-            <p className="text-sm font-medium mt-1 text-destructive dark:text-red-300">Sin Coincidencia Final</p>
+            <p className="text-3xl font-bold text-destructive dark:text-red-400">{finalUnmatchedWithReview.toFixed(1)}%</p>
+            <p className="text-xs font-medium mt-1 text-destructive dark:text-red-300">Pendiente de Revisión / Sin Match</p>
           </div>
         </div>
 
@@ -113,12 +129,12 @@ const FinalReconciliationResults: React.FC<FinalReconciliationResultsProps> = ({
               <span className="font-bold text-green-700">{hardMatchPercent.toFixed(1)}%</span>
             </li>
             
-            {/* Soft Key Matches */}
+            {/* Soft Key Matches (Only Auto + Suggested) */}
             <li className="flex justify-between items-center p-2 bg-blue-500/10 rounded-md">
               <span className="flex items-center gap-2 font-semibold text-foreground">
-                <Zap className="w-4 h-4 text-blue-600" /> Match Soft Total
+                <Zap className="w-4 h-4 text-blue-600" /> Match Soft Total (Automático + Sugerido)
               </span>
-              <span className="font-bold text-blue-700">{softMatchTotal.toFixed(1)}%</span>
+              <span className="font-bold text-blue-700">{softKeyContribution.toFixed(1)}%</span>
             </li>
             
             {/* Soft Match Breakdown */}
@@ -131,18 +147,26 @@ const FinalReconciliationResults: React.FC<FinalReconciliationResultsProps> = ({
                     <span>- Sugerido (Score ≥ {config.toleranceSettings.suggestedMatchThreshold}%)</span>
                     <span className="font-semibold text-blue-600">{softMatchSuggested.toFixed(1)}%</span>
                 </div>
-                <div className="flex justify-between items-center p-1 bg-blue-500/5 rounded-md">
-                    <span>- Para Revisar (Score ≥ {config.toleranceSettings.reviewThreshold}%)</span>
-                    <span className="font-semibold text-blue-600">{softMatchReview.toFixed(1)}%</span>
-                </div>
             </li>
 
-            {/* Final Unmatched */}
+            {/* Final Unmatched (Including Review) */}
             <li className="flex justify-between items-center p-2 bg-destructive/10 rounded-md border-l-4 border-destructive">
               <span className="flex items-center gap-2 font-semibold text-foreground">
-                <XCircle className="w-4 h-4 text-destructive" /> Sin Coincidencia Final (Score &lt; {config.toleranceSettings.reviewThreshold}%)
+                <XCircle className="w-4 h-4 text-destructive" /> Pendiente de Revisión / Sin Coincidencia Final
               </span>
-              <span className="font-bold text-destructive">{finalUnmatchedPercent.toFixed(1)}%</span>
+              <span className="font-bold text-destructive">{finalUnmatchedWithReview.toFixed(1)}%</span>
+            </li>
+            
+            {/* Sub-breakdown for Unmatched/Review */}
+            <li className="ml-4 space-y-1 text-xs text-muted-foreground">
+                <div className="flex justify-between items-center p-1">
+                    <span>(Incluye registros 'Para Revisar' Score ≥ {config.toleranceSettings.reviewThreshold}%)</span>
+                    <span className="font-semibold text-destructive/80">{softMatchReview.toFixed(1)}%</span>
+                </div>
+                <div className="flex justify-between items-center p-1">
+                    <span>(Incluye registros 'Sin Match' Score &lt; {config.toleranceSettings.reviewThreshold}%)</span>
+                    <span className="font-semibold text-destructive/80">{finalUnmatchedPercent.toFixed(1)}%</span>
+                </div>
             </li>
           </ul>
         </div>
