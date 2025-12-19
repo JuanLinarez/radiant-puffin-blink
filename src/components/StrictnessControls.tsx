@@ -355,6 +355,9 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
 
         {showScoringControls && (
           <div className="space-y-4 border-b pb-4">
+            <p className="text-sm text-muted-foreground">
+              Los pesos le dan un valor a cada soft key seleccionada para calcular el Score. Luego, estos tres umbrales usan ese Score para decidir qué hacer con cada resultado: hacerlo automático, mostrarlo como Match Sugerido, o dejarlo para revisar/descartar. Así tú decides cuánto automatizar y qué tan estricto quieres ser.
+            </p>
             <h4 className="font-semibold text-md text-primary">
               Pesos de Scoring (Total: {totalWeight}%)
             </h4>
