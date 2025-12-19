@@ -1,10 +1,12 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle2, XCircle, TrendingUp, Settings, Key, Zap } from 'lucide-react';
+import { CheckCircle2, XCircle, TrendingUp, Settings, Key, Zap, Download } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ReconciliationConfig } from './ReconciliationSetup';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { showSuccess } from '@/utils/toast';
 
 interface FinalReconciliationResultsProps {
   config: ReconciliationConfig;
@@ -13,6 +15,7 @@ interface FinalReconciliationResultsProps {
 
 const FinalReconciliationResults: React.FC<FinalReconciliationResultsProps> = ({ config, initialMatchPercent }) => {
   const navigate = useNavigate();
+  const [exportType, setExportType] = React.useState<'match' | 'review'>('match');
   
   // --- Simulation Logic: Breakdown of 100% ---
   
@@ -59,10 +62,10 @@ const FinalReconciliationResults: React.FC<FinalReconciliationResultsProps> = ({
   const softMatchSuggested = softMatchTotal * softSuggestedRatio;
   const softMatchReview = softMatchTotal * softReviewRatio; // This portion is now considered 'unmatched' for manual review
 
-  // 7. Final Match Total (Only Exact, Auto, Suggested)
+  // 7. Final Match Total (Only Exact, Auto, Sugerido)
   const finalMatchTotal = hardMatchPercent + softMatchAuto + softMatchSuggested;
 
-  // 8. Soft Key Contribution (Only Auto + Suggested)
+  // 8. Soft Key Contribution (Only Auto + Sugerido)
   const softKeyContribution = softMatchAuto + softMatchSuggested;
 
   // 9. Final Unmatched (Original Unmatched + Review Matches)
@@ -72,6 +75,14 @@ const FinalReconciliationResults: React.FC<FinalReconciliationResultsProps> = ({
   const handleReviewConfig = () => {
     // Navigate back to the setup page, passing the current config and forcing soft key steps visibility
     navigate('/', { state: { config, continueSoftKeys: true } });
+  };
+  
+  const handleExport = () => {
+    const fileName = exportType === 'match' 
+      ? `Reporte_Match_Total_${new Date().toISOString().slice(0, 10)}` 
+      : `Reporte_Pendiente_Revision_${new Date().toISOString().slice(0, 10)}`;
+      
+    showSuccess(`Simulando exportación de ${fileName}.xlsx`);
   };
 
   return (
@@ -86,22 +97,22 @@ const FinalReconciliationResults: React.FC<FinalReconciliationResultsProps> = ({
       </CardHeader>
       <CardContent className="space-y-8">
         
-        {/* Summary Metrics (4 Cards) */}
+        {/* Summary Metrics (4 Cards) - REORDERED */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
           
-          {/* 1. Hard Match Total */}
-          <div className="p-4 bg-green-500/20 rounded-lg border border-green-600/50">
-            <p className="text-3xl font-bold text-green-700 dark:text-green-400">{hardMatchPercent.toFixed(1)}%</p>
-            <p className="text-xs font-medium mt-1 text-green-800 dark:text-green-300">Match Exacto (Hard Keys)</p>
-          </div>
-          
-          {/* 2. Final Match Total (Auto + Sugerido) */}
+          {/* 1. Final Match Total (Auto + Sugerido) */}
           <div className="p-4 bg-primary/20 rounded-lg border border-primary/50">
             <p className="text-3xl font-bold text-primary dark:text-primary-foreground">{finalMatchTotal.toFixed(1)}%</p>
             <p className="text-xs font-medium mt-1 text-primary dark:text-primary-foreground">Match Total (Auto + Sugerido)</p>
           </div>
           
-          {/* 3. Soft Key Contribution (Auto + Sugerido) - Removed '+' sign */}
+          {/* 2. Hard Match Total */}
+          <div className="p-4 bg-green-500/20 rounded-lg border border-green-600/50">
+            <p className="text-3xl font-bold text-green-700 dark:text-green-400">{hardMatchPercent.toFixed(1)}%</p>
+            <p className="text-xs font-medium mt-1 text-green-800 dark:text-green-300">Match Exacto (Hard Keys)</p>
+          </div>
+          
+          {/* 3. Soft Key Contribution (Auto + Sugerido) */}
           <div className="p-4 bg-blue-500/20 rounded-lg border border-blue-600/50">
             <p className="text-3xl font-bold text-blue-700 dark:text-blue-400">{softKeyContribution.toFixed(1)}%</p>
             <p className="text-xs font-medium mt-1 text-blue-800 dark:text-blue-300">Contribución Soft Keys</p>
@@ -129,7 +140,7 @@ const FinalReconciliationResults: React.FC<FinalReconciliationResultsProps> = ({
               <span className="font-bold text-green-700">{hardMatchPercent.toFixed(1)}%</span>
             </li>
             
-            {/* Soft Key Matches (Only Auto + Suggested) */}
+            {/* Soft Key Matches (Only Auto + Sugerido) */}
             <li className="flex justify-between items-center p-2 bg-blue-500/10 rounded-md">
               <span className="flex items-center gap-2 font-semibold text-foreground">
                 <Zap className="w-4 h-4 text-blue-600" /> Match Soft Total (Automático + Sugerido)
@@ -174,14 +185,36 @@ const FinalReconciliationResults: React.FC<FinalReconciliationResultsProps> = ({
         {/* Next Steps */}
         <div className="pt-4 border-t text-center space-y-4">
           <p className="text-md font-medium mb-3">Próximos Pasos:</p>
-          <p className="text-sm text-muted-foreground">
-            Ahora puedes descargar el reporte de resultados o proceder a la revisión manual de los registros 'Sugeridos' y 'Para Revisar'.
-          </p>
           
+          {/* Export Controls */}
+          <div className="flex flex-col md:flex-row gap-3 justify-center items-center">
+              <div className="w-full md:w-64">
+                  <Select 
+                      value={exportType} 
+                      onValueChange={(value: 'match' | 'review') => setExportType(value)}
+                  >
+                      <SelectTrigger>
+                          <SelectValue placeholder="Seleccionar archivo a exportar" />
+                      </SelectTrigger>
+                      <SelectContent>
+                          <SelectItem value="match">Match Total ({finalMatchTotal.toFixed(1)}%)</SelectItem>
+                          <SelectItem value="review">Pendiente de Revisión / Sin Match ({finalUnmatchedWithReview.toFixed(1)}%)</SelectItem>
+                      </SelectContent>
+                  </Select>
+              </div>
+              <Button 
+                  onClick={handleExport}
+                  className="w-full md:w-auto"
+              >
+                  <Download className="w-4 h-4 mr-2" />
+                  Exportar
+              </Button>
+          </div>
+
           <Button 
             variant="outline"
             onClick={handleReviewConfig}
-            className="w-full md:w-auto"
+            className="w-full md:w-auto mt-2"
           >
             <Settings className="w-4 h-4 mr-2" />
             Revisar Configuración de Soft Keys
