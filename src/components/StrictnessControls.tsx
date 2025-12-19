@@ -12,7 +12,6 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import ThresholdVisualizer from "./ThresholdVisualizer";
 
 // --- Types for Strictness Controls ---
 type StrictnessMode = "Balanceado" | "Flexible";
@@ -419,13 +418,6 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
               Umbrales de Clasificación de Match
             </h4>
 
-            <ThresholdVisualizer
-              auto={toleranceSettings.autoMatchThreshold}
-              suggested={toleranceSettings.suggestedMatchThreshold}
-              review={toleranceSettings.reviewThreshold}
-              showLegend={false}
-            />
-
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {/* Auto Match Threshold */}
               <div className="space-y-2">
@@ -451,7 +443,7 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
 
               {/* Suggested Match Threshold */}
               <div className="space-y-2">
-                <div className="flex justify-between items-center">
+                <div className="flex justify_between items-center">
                   <Label>Match Sugerido (Score %)</Label>
                   <span className="text-sm font-medium">
                     {toleranceSettings.suggestedMatchThreshold}%
