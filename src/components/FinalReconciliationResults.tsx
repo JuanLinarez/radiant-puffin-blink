@@ -1,11 +1,10 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle2, XCircle, TrendingUp, Settings, Key, Zap, Download } from 'lucide-react';
+import { CheckCircle2, XCircle, TrendingUp, Settings, Key, Zap, Download, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ReconciliationConfig } from './ReconciliationSetup';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { showSuccess } from '@/utils/toast';
 
 interface FinalReconciliationResultsProps {
@@ -15,7 +14,6 @@ interface FinalReconciliationResultsProps {
 
 const FinalReconciliationResults: React.FC<FinalReconciliationResultsProps> = ({ config, initialMatchPercent }) => {
   const navigate = useNavigate();
-  const [exportType, setExportType] = React.useState<'match' | 'review'>('match');
   
   // --- Simulation Logic: Breakdown of 100% ---
   
@@ -77,12 +75,17 @@ const FinalReconciliationResults: React.FC<FinalReconciliationResultsProps> = ({
     navigate('/', { state: { config, continueSoftKeys: true } });
   };
   
-  const handleExport = () => {
-    const fileName = exportType === 'match' 
+  const handleExport = (type: 'match' | 'review') => {
+    const fileName = type === 'match' 
       ? `Reporte_Match_Total_${new Date().toISOString().slice(0, 10)}` 
       : `Reporte_Pendiente_Revision_${new Date().toISOString().slice(0, 10)}`;
       
     showSuccess(`Simulando exportación de ${fileName}.xlsx`);
+  };
+  
+  const handleExplore = () => {
+    // Future RAG/Vector analysis functionality
+    showSuccess("Simulando exploración avanzada de registros pendientes...");
   };
 
   return (
@@ -186,39 +189,44 @@ const FinalReconciliationResults: React.FC<FinalReconciliationResultsProps> = ({
         <div className="pt-4 border-t text-center space-y-4">
           <p className="text-md font-medium mb-3">Próximos Pasos:</p>
           
-          {/* Export Controls */}
+          {/* Row 1: Export Actions */}
           <div className="flex flex-col md:flex-row gap-3 justify-center items-center">
-              <div className="w-full md:w-64">
-                  <Select 
-                      value={exportType} 
-                      onValueChange={(value: 'match' | 'review') => setExportType(value)}
-                  >
-                      <SelectTrigger>
-                          <SelectValue placeholder="Seleccionar archivo a exportar" />
-                      </SelectTrigger>
-                      <SelectContent>
-                          <SelectItem value="match">Match Total ({finalMatchTotal.toFixed(1)}%)</SelectItem>
-                          <SelectItem value="review">Pendiente de Revisión / Sin Match ({finalUnmatchedWithReview.toFixed(1)}%)</SelectItem>
-                      </SelectContent>
-                  </Select>
-              </div>
               <Button 
-                  onClick={handleExport}
+                  onClick={() => handleExport('match')}
+                  className="w-full md:w-auto bg-green-600 hover:bg-green-700"
+              >
+                  <Download className="w-4 h-4 mr-2" />
+                  Exportar Match Total ({finalMatchTotal.toFixed(1)}%)
+              </Button>
+              <Button 
+                  onClick={() => handleExport('review')}
+                  variant="destructive"
                   className="w-full md:w-auto"
               >
                   <Download className="w-4 h-4 mr-2" />
-                  Exportar
+                  Exportar Pendiente de Revisión ({finalUnmatchedWithReview.toFixed(1)}%)
               </Button>
           </div>
-
-          <Button 
-            variant="outline"
-            onClick={handleReviewConfig}
-            className="w-full md:w-auto mt-2"
-          >
-            <Settings className="w-4 h-4 mr-2" />
-            Revisar Configuración de Soft Keys
-          </Button>
+          
+          {/* Row 2: Review/Explore Actions */}
+          <div className="flex flex-col md:flex-row gap-3 justify-center items-center">
+              <Button 
+                variant="outline"
+                onClick={handleReviewConfig}
+                className="w-full md:w-auto"
+              >
+                <Settings className="w-4 h-4 mr-2" />
+                Revisar Configuración de Soft Keys
+              </Button>
+              <Button 
+                variant="secondary"
+                onClick={handleExplore}
+                className="w-full md:w-auto"
+              >
+                <Search className="w-4 h-4 mr-2" />
+                Explorar Registros Pendientes (RAG)
+              </Button>
+          </div>
         </div>
       </CardContent>
     </Card>
