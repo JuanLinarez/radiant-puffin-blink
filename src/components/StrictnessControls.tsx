@@ -407,7 +407,7 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
                   className="w-full"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Coincidencias entre este puntaje y el Match Sugerido se marcan como “Para Revisar”. Todo lo que quede por debajo de este % (junto con lo que no haya hecho match) se mostrará como “No Match”.
+                  Coincidencias entre este puntaje y el Match Sugerido se marcan como “Para Revisar”. Todo por debajo de este % se considera “No Match”.
                 </p>
               </div>
             </div>
