@@ -1,16 +1,22 @@
-import React from 'react';
-import { cn } from '@/lib/utils';
-import { Check, Zap, Eye } from 'lucide-react';
+import React from "react";
+import { cn } from "@/lib/utils";
+import { Check, Zap, Eye } from "lucide-react";
 
 interface ThresholdVisualizerProps {
   auto: number; // Auto Match Threshold (e.g., 95)
   suggested: number; // Suggested Match Threshold (e.g., 70)
   review: number; // Review Threshold (e.g., 40)
+  showLegend?: boolean;
 }
 
-const ThresholdVisualizer: React.FC<ThresholdVisualizerProps> = ({ auto, suggested, review }) => {
+const ThresholdVisualizer: React.FC<ThresholdVisualizerProps> = ({
+  auto,
+  suggested,
+  review,
+  showLegend = true,
+}) => {
   // Ensure thresholds are ordered correctly (auto > suggested > review)
-  // Note: The parent component (StrictnessControls) already enforces these constraints via handlers, 
+  // Note: The parent component (StrictnessControls) already enforces these constraints via handlers,
   // but we re-validate here for robustness in visualization.
   const tAuto = Math.min(100, Math.max(0, auto));
   const tSuggested = Math.min(tAuto - 1, Math.max(0, suggested));
@@ -33,26 +39,26 @@ const ThresholdVisualizer: React.FC<ThresholdVisualizerProps> = ({ auto, suggest
         {/* Background Bar (Represents 0% to 100%) */}
         <div className="flex h-full w-full">
           {/* No Match Zone (0% to tReview) */}
-          <div 
-            style={{ width: `${widthNoMatch}%` }} 
+          <div
+            style={{ width: `${widthNoMatch}%` }}
             className="bg-destructive/20 transition-all duration-300"
             title={`No Match: 0% - ${tReview}%`}
           />
           {/* Review Zone (tReview to tSuggested) */}
-          <div 
-            style={{ width: `${widthReview}%` }} 
+          <div
+            style={{ width: `${widthReview}%` }}
             className="bg-yellow-500/30 transition-all duration-300"
             title={`Revisar: ${tReview}% - ${tSuggested}%`}
           />
           {/* Suggested Zone (tSuggested to tAuto) */}
-          <div 
-            style={{ width: `${widthSuggested}%` }} 
+          <div
+            style={{ width: `${widthSuggested}%` }}
             className="bg-blue-500/30 transition-all duration-300"
             title={`Sugerido: ${tSuggested}% - ${tAuto}%`}
           />
           {/* Auto Match Zone (tAuto to 100%) */}
-          <div 
-            style={{ width: `${widthAuto}%` }} 
+          <div
+            style={{ width: `${widthAuto}%` }}
             className="bg-green-500/30 transition-all duration-300"
             title={`Automático: ${tAuto}% - 100%`}
           />
@@ -60,41 +66,43 @@ const ThresholdVisualizer: React.FC<ThresholdVisualizerProps> = ({ auto, suggest
 
         {/* Threshold Markers */}
         {/* Review Marker */}
-        <div 
-          className="absolute top-0 h-full w-0.5 bg-yellow-600 dark:bg-yellow-400 shadow-md" 
+        <div
+          className="absolute top-0 h-full w-0.5 bg-yellow-600 dark:bg-yellow-400 shadow-md"
           style={{ left: `${tReview}%` }}
         />
         {/* Suggested Marker */}
-        <div 
-          className="absolute top-0 h-full w-0.5 bg-blue-600 dark:bg-blue-400 shadow-md" 
+        <div
+          className="absolute top-0 h-full w-0.5 bg-blue-600 dark:bg-blue-400 shadow-md"
           style={{ left: `${tSuggested}%` }}
         />
         {/* Auto Marker */}
-        <div 
-          className="absolute top-0 h-full w-0.5 bg-green-600 dark:bg-green-400 shadow-md" 
+        <div
+          className="absolute top-0 h-full w-0.5 bg-green-600 dark:bg-green-400 shadow-md"
           style={{ left: `${tAuto}%` }}
         />
       </div>
 
       {/* Legend */}
-      <div className="flex justify-between text-xs text-muted-foreground flex-wrap">
-        <div className="flex items-center gap-1">
-          <div className="w-3 h-3 rounded-full bg-destructive/20 border border-destructive" />
-          No Match
+      {showLegend && (
+        <div className="flex justify-between text-xs text-muted-foreground flex-wrap">
+          <div className="flex items-center gap-1">
+            <div className="w-3 h-3 rounded-full bg-destructive/20 border border-destructive" />
+            No Match
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-3 h-3 rounded-full bg-yellow-500/30 border border-yellow-600" />
+            Revisar
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-3 h-3 rounded-full bg-blue-500/30 border border-blue-600" />
+            Sugerido
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-3 h-3 rounded-full bg-green-500/30 border border-green-600" />
+            Automático
+          </div>
         </div>
-        <div className="flex items-center gap-1">
-          <div className="w-3 h-3 rounded-full bg-yellow-500/30 border border-yellow-600" />
-          Revisar
-        </div>
-        <div className="flex items-center gap-1">
-          <div className="w-3 h-3 rounded-full bg-blue-500/30 border border-blue-600" />
-          Sugerido
-        </div>
-        <div className="flex items-center gap-1">
-          <div className="w-3 h-3 rounded-full bg-green-500/30 border border-green-600" />
-          Automático
-        </div>
-      </div>
+      )}
     </div>
   );
 };
