@@ -65,10 +65,10 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
 
   const availableWeights = useMemo(() => {
     const weights: string[] = [];
-    
+
     const selectedAmount = softKeys.includes('Amount');
     const selectedDate = softKeys.includes('Date');
-    
+
     if (selectedAmount) weights.push('Amount');
     if (selectedDate) weights.push('Date');
 
@@ -76,7 +76,7 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
     if (currentMode === 'Flexible' && hasText) {
       weights.push('Text');
     }
-    
+
     return weights;
   }, [softKeys, currentMode, hasText]);
 
@@ -87,7 +87,7 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
     }
 
     const totalWeight = availableWeights.reduce((sum, key) => sum + (currentWeights[key] || 0), 0);
-    
+
     if (totalWeight === 100) {
       return;
     }
@@ -106,18 +106,18 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
       newWeighting[key] = weight;
       currentTotal += weight;
     });
-    
+
     // Ensure all non-active keys are reset to 0
     Object.keys(currentWeights).forEach(key => {
-        if (!availableWeights.includes(key)) {
-            newWeighting[key] = 0;
-        }
+      if (!availableWeights.includes(key)) {
+        newWeighting[key] = 0;
+      }
     });
 
     const isDifferent = availableWeights.some(key => newWeighting[key] !== currentWeights[key]);
 
     if (isDifferent) {
-        onToleranceChange('weighting', newWeighting);
+      onToleranceChange('weighting', newWeighting);
     }
 
   }, [availableWeights, currentWeights, currentMode, onToleranceChange]);
@@ -136,7 +136,7 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
 
     const otherKeys = availableWeights.filter(key => key !== keyToChange);
     const numOtherKeys = otherKeys.length;
-    
+
     const remainingWeightForOthers = 100 - newValue;
 
     if (numOtherKeys === 0) {
@@ -146,7 +146,7 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
       newWeighting[otherKey] = remainingWeightForOthers;
     } else if (numOtherKeys === 2) {
       const [key1, key2] = otherKeys;
-      
+
       const currentWeight1 = currentWeights[key1] || 0;
       const currentWeight2 = currentWeights[key2] || 0;
       const currentSumOfOthers = currentWeight1 + currentWeight2;
@@ -158,7 +158,7 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
         const ratio1 = currentWeight1 / currentSumOfOthers;
         const newWeight1 = Math.round(remainingWeightForOthers * ratio1);
         const newWeight2 = remainingWeightForOthers - newWeight1;
-        
+
         newWeighting[key1] = newWeight1;
         newWeighting[key2] = newWeight2;
       }
@@ -166,7 +166,7 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
 
     onToleranceChange('weighting', newWeighting);
   };
-  
+
   // --- Handlers for Classification Thresholds (New Logic) ---
   const handleAutoMatchChange = (newValue: number) => {
     const suggested = toleranceSettings.suggestedMatchThreshold;
@@ -178,11 +178,11 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
   const handleSuggestedMatchChange = (newValue: number) => {
     const auto = toleranceSettings.autoMatchThreshold;
     const review = toleranceSettings.reviewThreshold;
-    
+
     // Must be less than auto and greater than review
     let validatedValue = Math.min(newValue, auto - 1);
     validatedValue = Math.max(validatedValue, review + 1);
-    
+
     onToleranceChange('suggestedMatchThreshold', validatedValue);
   };
 
@@ -193,10 +193,10 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
     onToleranceChange('reviewThreshold', validatedValue);
   };
   // ----------------------------------------------------------
-  
+
   // Helper to check if we should show scoring controls
   const showScoringControls = availableWeights.length > 0;
-  
+
   // Helper to check if we should show tolerance controls (Amount/Date/Fuzzy)
   const showToleranceControls = hasAmountOrDate || hasText;
 
@@ -258,7 +258,6 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
     );
   }
 
-
   return (
     <Card className="shadow-xl rounded-xl border-none">
       <CardHeader>
@@ -270,10 +269,10 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        
+
         {/* Mode Selection */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-b pb-4">
-          
+
           {/* Balanceado Mode */}
           <div className={cn(
             "flex items-center justify-between p-2 rounded-md transition-colors border",
@@ -325,12 +324,12 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
         {showScoringControls && (
           <div className="space-y-4 border-b pb-4">
             <h4 className="font-semibold text-md text-primary">Pesos de Scoring (Total: {totalWeight}%)</h4>
-            
+
             <p className="text-sm text-muted-foreground mb-2">
-              Define la importancia relativa de cada Soft Key en el puntaje de coincidencia. 
+              Define la importancia relativa de cada Soft Key en el puntaje de coincidencia.
               Peso restante: <span className={cn("font-semibold", remainingWeight < 0 ? "text-destructive" : "text-primary")}>{remainingWeight}%</span>
             </p>
-            
+
             {availableWeights.length > 0 && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {availableWeights.map(key => (
@@ -345,14 +344,14 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
             )}
           </div>
         )}
-        
+
         {/* Classification Thresholds */}
         {(currentMode === 'Balanceado' || currentMode === 'Flexible') && (
           <div className="space-y-4">
             <h4 className="font-semibold text-md text-primary">Umbrales de Clasificación de Match</h4>
             <p className="text-sm text-muted-foreground mb-4">Define los puntajes mínimos requeridos para clasificar una coincidencia.</p>
 
-            <ThresholdVisualizer 
+            <ThresholdVisualizer
               auto={toleranceSettings.autoMatchThreshold}
               suggested={toleranceSettings.suggestedMatchThreshold}
               review={toleranceSettings.reviewThreshold}
@@ -392,7 +391,7 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
                 />
                 <p className="text-xs text-muted-foreground">Coincidencias entre este puntaje y el Match Automático se marcan como Sugeridas.</p>
               </div>
-              
+
               {/* Review Threshold */}
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
@@ -407,7 +406,9 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
                   onValueChange={(v) => handleReviewThresholdChange(v[0])}
                   className="w-full"
                 />
-                <p className="text-xs text-muted-foreground">Coincidencias entre este puntaje y el Match Sugerido se marcan como 'Para Revisar'. Por debajo de este puntaje, se consideran 'No Match'.</p>
+                <p className="text-xs text-muted-foreground">
+                  Coincidencias entre este puntaje y el Match Sugerido se marcan como “Para Revisar”. Todo lo que caiga por debajo de este % se considera “No Match”.
+                </p>
               </div>
             </div>
           </div>
