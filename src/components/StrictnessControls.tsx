@@ -13,7 +13,6 @@ import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
-// --- Types for Strictness Controls ---
 type StrictnessMode = "Balanceado" | "Flexible";
 
 interface WeightingSliderProps {
@@ -34,7 +33,7 @@ const WeightingSlider: React.FC<WeightingSliderProps> = ({
     </div>
     <Slider
       value={[value]}
-      max={100} // Fixed max to 100
+      max={100}
       step={1}
       onValueChange={(v) => onChange(v[0])}
       className="w-full"
@@ -86,7 +85,6 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
     if (selectedAmount) weights.push("Amount");
     if (selectedDate) weights.push("Date");
 
-    // Text is only included in Flexible mode if textual keys are selected
     if (currentMode === "Flexible" && hasText) {
       weights.push("Text");
     }
@@ -94,7 +92,6 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
     return weights;
   }, [softKeys, currentMode, hasText]);
 
-  // --- Normalization Logic ---
   useEffect(() => {
     if (availableWeights.length === 0) {
       return;
@@ -109,7 +106,6 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
       return;
     }
 
-    // If not 100%, normalize the weights
     const numWeights = availableWeights.length;
     const baseWeight = Math.floor(100 / numWeights);
     const remainder = 100 % numWeights;
@@ -118,13 +114,11 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
     let currentTotal = 0;
 
     availableWeights.forEach((key, index) => {
-      // Distribute remainder to the first 'remainder' keys
       const weight = baseWeight + (index < remainder ? 1 : 0);
       newWeighting[key] = weight;
       currentTotal += weight;
     });
 
-    // Ensure all non-active keys are reset to 0
     Object.keys(currentWeights).forEach((key) => {
       if (!availableWeights.includes(key)) {
         newWeighting[key] = 0;
@@ -139,9 +133,7 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
       onToleranceChange("weighting", newWeighting);
     }
   }, [availableWeights, currentWeights, currentMode, onToleranceChange]);
-  // ---------------------------
 
-  // Calculate total weight based ONLY on currently available weights
   const totalWeight = availableWeights.reduce(
     (sum, key) => sum + (currentWeights[key] || 0),
     0,
@@ -149,7 +141,6 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
   const remainingWeight = 100 - totalWeight;
 
   const handleWeightChange = (keyToChange: string, newValue: number) => {
-    // Ensure the new value is between 0 and 100
     newValue = Math.max(0, Math.min(100, newValue));
 
     const newWeighting = { ...currentWeights };
@@ -188,10 +179,8 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
     onToleranceChange("weighting", newWeighting);
   };
 
-  // --- Handlers for Classification Thresholds (New Logic) ---
   const handleAutoMatchChange = (newValue: number) => {
     const suggested = toleranceSettings.suggestedMatchThreshold;
-    // Must be at least 1 point higher than suggested, and max 100
     const validatedValue = Math.min(100, Math.max(newValue, suggested + 1));
     onToleranceChange("autoMatchThreshold", validatedValue);
   };
@@ -200,7 +189,6 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
     const auto = toleranceSettings.autoMatchThreshold;
     const review = toleranceSettings.reviewThreshold;
 
-    // Must be less than auto and greater than review
     let validatedValue = Math.min(newValue, auto - 1);
     validatedValue = Math.max(validatedValue, review + 1);
 
@@ -209,23 +197,17 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
 
   const handleReviewThresholdChange = (newValue: number) => {
     const suggested = toleranceSettings.suggestedMatchThreshold;
-    // Must be less than suggested, and min 0
     const validatedValue = Math.max(0, Math.min(newValue, suggested - 1));
     onToleranceChange("reviewThreshold", validatedValue);
   };
-  // ----------------------------------------------------------
 
-  // Helper to check if we should show scoring controls
   const showScoringControls = availableWeights.length > 0;
-
-  // Helper to check if we should show tolerance controls (Amount/Date/Fuzzy)
   const showToleranceControls = hasAmountOrDate || hasText;
 
-  // Collect tolerance controls into an array for easier grid layout
   const toleranceControls = [];
   if (softKeys.includes("Amount")) {
     toleranceControls.push(
-      <div key="amount" className="space-y-2">
+      <div key="amount" className="flex-1 min-w-[240px] space-y-2">
         <div className="flex justify-between items-center">
           <Label>Tolerancia de Monto (%)</Label>
           <span className="text-sm font-medium">
@@ -247,7 +229,7 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
   }
   if (softKeys.includes("Date")) {
     toleranceControls.push(
-      <div key="date" className="space-y-2">
+      <div key="date" className="flex-1 min-w-[240px] space-y-2">
         <div className="flex justify_between items-center">
           <Label>Tolerancia de Fecha (Días)</Label>
           <span className="text-sm font-medium">
@@ -267,10 +249,9 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
       </div>,
     );
   }
-  // Fuzzy threshold is only relevant in Flexible mode, and if text keys are selected
   if (currentMode === "Flexible" && hasText) {
     toleranceControls.push(
-      <div key="text" className="space-y-2">
+      <div key="text" className="flex-1 min-w-[240px] space-y-2">
         <div className="flex justify-between items-center">
           <Label>Umbral de Similitud Textual (Fuzzy %)</Label>
           <span className="text-sm font-medium">
@@ -303,9 +284,7 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Mode Selection */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-b pb-4">
-          {/* Balanceado Mode */}
           <div
             className={cn(
               "flex items-center justify-between p-2 rounded-md transition-colors border",
@@ -332,7 +311,6 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
             />
           </div>
 
-          {/* Flexible Mode */}
           <div
             className={cn(
               "flex items-center justify-between p-2 rounded-md transition-colors border",
@@ -360,7 +338,6 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
           </div>
         </div>
 
-        {/* Dynamic Tolerance Controls */}
         {showToleranceControls && (
           <div className="space-y-4 border-b pb-4">
             <h4 className="font-semibold text-md text-primary">
@@ -370,13 +347,12 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
               Define los límites de variación aceptables para los campos.
             </p>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex flex-col gap-4 md:flex-row md:flex-nowrap">
               {toleranceControls}
             </div>
           </div>
         )}
 
-        {/* Dynamic Scoring Controls */}
         {showScoringControls && (
           <div className="space-y-4 border-b pb-4">
             <h4 className="font-semibold text-md text-primary">
@@ -397,31 +373,30 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
             </p>
 
             {availableWeights.length > 0 && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex flex-col gap-4 md:flex-row md:flex-nowrap">
                 {availableWeights.map((key) => (
-                  <WeightingSlider
-                    key={key}
-                    label={key}
-                    value={currentWeights[key] || 0}
-                    onChange={(value) => handleWeightChange(key, value)}
-                  />
+                  <div key={key} className="flex-1 min-w-[220px]">
+                    <WeightingSlider
+                      label={key}
+                      value={currentWeights[key] || 0}
+                      onChange={(value) => handleWeightChange(key, value)}
+                    />
+                  </div>
                 ))}
               </div>
             )}
           </div>
         )}
 
-        {/* Classification Thresholds */}
         {(currentMode === "Balanceado" || currentMode === "Flexible") && (
           <div className="space-y-4">
             <h4 className="font-semibold text-md text-primary">
               Umbrales de Clasificación de Match
             </h4>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {/* Auto Match Threshold */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
-                <div className="flex justify-between items-center">
+                <div className="flex justify_between items-center">
                   <Label>Match Automático (Score %)</Label>
                   <span className="text-sm font-medium">
                     {toleranceSettings.autoMatchThreshold}%
@@ -430,7 +405,7 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
                 <Slider
                   value={[toleranceSettings.autoMatchThreshold]}
                   max={100}
-                  min={0} // Static min for visual proportionality
+                  min={0}
                   step={1}
                   onValueChange={(v) => handleAutoMatchChange(v[0])}
                   className="w-full"
@@ -441,7 +416,6 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
                 </p>
               </div>
 
-              {/* Suggested Match Threshold */}
               <div className="space-y-2">
                 <div className="flex justify_between items-center">
                   <Label>Match Sugerido (Score %)</Label>
@@ -451,20 +425,19 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
                 </div>
                 <Slider
                   value={[toleranceSettings.suggestedMatchThreshold]}
-                  max={100} // Static max for visual proportionality
-                  min={0} // Static min for visual proportionality
+                  max={100}
+                  min={0}
                   step={1}
                   onValueChange={(v) => handleSuggestedMatchChange(v[0])}
                   className="w-full"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Coincidencias con este puntaje o superior se marcan
-                  automáticamente como Match. Estos casos aparecerán en el
-                  reporte final.
+                  Coincidencias con entre Match Automático y Match Sugerido se
+                  marcarán como Match y aparecerán en el reporte final como Match
+                  Sugerido.
                 </p>
               </div>
 
-              {/* Review Threshold */}
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
                   <Label>Para Revisar (Score %)</Label>
@@ -474,8 +447,8 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
                 </div>
                 <Slider
                   value={[toleranceSettings.reviewThreshold]}
-                  max={100} // Static max for visual proportionality
-                  min={0} // Static min for visual proportionality
+                  max={100}
+                  min={0}
                   step={1}
                   onValueChange={(v) => handleReviewThresholdChange(v[0])}
                   className="w-full"
