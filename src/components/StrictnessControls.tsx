@@ -9,7 +9,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import ThresholdVisualizer from './ThresholdVisualizer';
 
 // --- Types for Strictness Controls ---
-type StrictnessMode = 'Conservador' | 'Balanceado' | 'Flexible';
+type StrictnessMode = 'Balanceado' | 'Flexible';
 
 interface WeightingSliderProps {
   label: string;
@@ -64,8 +64,6 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
   const currentWeights = toleranceSettings.weighting;
 
   const availableWeights = useMemo(() => {
-    if (currentMode === 'Conservador') return [];
-
     const weights: string[] = [];
     
     const selectedAmount = softKeys.includes('Amount');
@@ -84,7 +82,7 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
 
   // --- Normalization Logic ---
   useEffect(() => {
-    if (currentMode === 'Conservador' || availableWeights.length === 0) {
+    if (availableWeights.length === 0) {
       return;
     }
 
@@ -197,10 +195,10 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
   // ----------------------------------------------------------
   
   // Helper to check if we should show scoring controls
-  const showScoringControls = currentMode !== 'Conservador' && availableWeights.length > 0;
+  const showScoringControls = availableWeights.length > 0;
   
   // Helper to check if we should show tolerance controls (Amount/Date/Fuzzy)
-  const showToleranceControls = currentMode !== 'Conservador' && (hasAmountOrDate || hasText);
+  const showToleranceControls = hasAmountOrDate || hasText;
 
   // Collect tolerance controls into an array for easier grid layout
   const toleranceControls = [];
@@ -240,6 +238,7 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
       </div>
     );
   }
+  // Fuzzy threshold is only relevant in Flexible mode, and if text keys are selected
   if (currentMode === 'Flexible' && hasText) {
     toleranceControls.push(
       <div key="text" className="space-y-2">
@@ -273,24 +272,8 @@ const StrictnessControls: React.FC<StrictnessControlsProps> = ({
       <CardContent className="space-y-6">
         
         {/* Mode Selection */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 border-b pb-4">
-          {/* Conservador Mode */}
-          <div className={cn(
-            "flex items-center justify-between p-2 rounded-md transition-colors border",
-            softKeys.length === 0 ? "hover:bg-accent" : "opacity-50 cursor-not-allowed"
-          )}>
-            <Label htmlFor="mode-conservador" className="flex flex-col space-y-1 cursor-pointer pr-2">
-              <span className="font-medium flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> Conservador</span>
-              <p className="text-xs text-muted-foreground">Solo se aceptan coincidencias perfectas usando Hard Keys. (Default si no hay Soft Keys)</p>
-            </Label>
-            <Switch
-              id="mode-conservador"
-              checked={currentMode === 'Conservador'}
-              disabled={softKeys.length > 0} // Disabled if any soft key is selected
-              onCheckedChange={(checked) => onModeChange('Conservador', checked)}
-            />
-          </div>
-
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-b pb-4">
+          
           {/* Balanceado Mode */}
           <div className={cn(
             "flex items-center justify-between p-2 rounded-md transition-colors border",

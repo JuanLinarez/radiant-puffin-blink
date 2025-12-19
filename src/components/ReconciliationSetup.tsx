@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import ConfigurationSummary from "./ConfigurationSummary";
 import HardKeyDecisionResults from "./HardKeyDecisionResults"; // Importamos HardKeyDecisionResults
 
-type StrictnessMode = 'Conservador' | 'Balanceado' | 'Flexible';
+type StrictnessMode = 'Balanceado' | 'Flexible';
 
 interface ToleranceSettings {
   amountTolerancePercent: number;
@@ -63,12 +63,12 @@ const DEFAULT_CONFIG: ReconciliationConfig = {
   hardKeys: [], // Default hard keys: empty
   softKeys: [],
   
-  strictnessMode: 'Conservador',
+  strictnessMode: 'Balanceado', // Default to Balanceado, assuming Soft Keys will be selected if this step is reached
   toleranceSettings: {
     amountTolerancePercent: 0.5,
     dateToleranceDays: 7,
     textFuzzyThreshold: 80,
-    weighting: { Amount: 33, Date: 33, Text: 34 }, 
+    weighting: { Amount: 50, Date: 50, Text: 0 }, // Adjusted default weighting
     autoMatchThreshold: 95,
     suggestedMatchThreshold: 70,
     reviewThreshold: 40,
@@ -144,18 +144,13 @@ const ReconciliationSetup: React.FC = () => {
       const hasAmountOrDate = newKeys.some(k => ['Amount', 'Date'].includes(k));
       const hasText = newKeys.some(k => ['Vendor Name', 'Description'].includes(k));
 
-      if (prev.strictnessMode === 'Balanceado' && !hasAmountOrDate) {
-          newStrictnessMode = 'Conservador';
-      }
-      // If we lose text keys, Flexible mode is no longer possible. Revert to Balanceado if Amount/Date exists, otherwise Conservador.
+      // If we lose text keys, Flexible mode is no longer possible. Revert to Balanceado.
       if (prev.strictnessMode === 'Flexible' && !hasText) {
-          newStrictnessMode = hasAmountOrDate ? 'Balanceado' : 'Conservador';
+          newStrictnessMode = 'Balanceado';
       }
       
-      // If all soft keys are removed, revert to Conservador
-      if (newKeys.length === 0) {
-          newStrictnessMode = 'Conservador';
-      }
+      // If all soft keys are removed, we don't need to enforce a mode, but we keep 'Balanceado' as the default for the next selection.
+      // The button will be disabled anyway if softKeys.length === 0.
 
       return { ...prev, softKeys: newKeys, strictnessMode: newStrictnessMode };
     });
